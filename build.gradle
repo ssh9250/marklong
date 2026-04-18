@@ -1,0 +1,98 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'org.springframework.boot' version '4.0.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'marklong'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+    testCompileOnly 'org.projectlombok:lombok'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+
+    classDirectories.setFrom(
+            files(sourceSets.main.output.classesDirs).asFileTree.matching {
+                exclude(
+                        '**/dto/**',
+                        '**/entity/**',
+                        '**/exception/**',
+                        '**/config/**',
+                        '**/global/**',
+                        '**/*Application*',
+                        '**/*Request*',
+                        '**/*Response*'
+                )
+            }
+    )
+}
+
+jacocoTestCoverageVerification {
+    classDirectories.setFrom(
+            files(sourceSets.main.output.classesDirs).asFileTree.matching {
+                exclude(
+                        '**/dto/**',
+                        '**/entity/**',
+                        '**/exception/**',
+                        '**/config/**',
+                        '**/global/**',
+                        '**/*Application*',
+                        '**/*Request*',
+                        '**/*Response*'
+                )
+            }
+    )
+    violationRules {
+        rule{
+            limit{
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.70
+            }
+        }
+    }
+}
+
+test{
+    finalizedBy jacocoTestReport
+    ignoreFailures = true
+}

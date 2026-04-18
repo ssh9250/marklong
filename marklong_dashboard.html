@@ -1,0 +1,320 @@
+
+<style>
+.db-root { padding: 1.5rem 0; font-family: var(--font-sans); }
+.db-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 1rem; }
+.db-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+.db-sub { font-size: 13px; color: var(--color-text-secondary); }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 99px; }
+.badge-blue { background: #E6F1FB; color: #0C447C; }
+.badge-teal { background: #E1F5EE; color: #085041; }
+.badge-amber { background: #FAEEDA; color: #633806; }
+.badge-coral { background: #FAECE7; color: #712B13; }
+.badge-gray { background: #F1EFE8; color: #444441; }
+.section { margin-bottom: 1.75rem; }
+.section-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.6rem; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+.card-sm { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+.stat-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+.row { display: flex; align-items: center; gap: 8px; }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 10px 0; }
+.mono { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-secondary); }
+.pkg-tree { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-secondary); line-height: 1.8; }
+.pkg-tree .hl { color: var(--color-text-primary); font-weight: 500; }
+.pkg-tree .dim { opacity: 0.55; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-teal { background: #1D9E75; }
+.dot-coral { background: #D85A30; }
+.dot-gray { background: #888780; }
+.phase-row { display: flex; gap: 0; margin-bottom: 6px; }
+.phase-cell { flex: 1; padding: 6px 8px; font-size: 12px; border: 0.5px solid var(--color-border-tertiary); }
+.phase-cell:first-child { border-radius: var(--border-radius-md) 0 0 var(--border-radius-md); }
+.phase-cell:last-child { border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; }
+.phase-now { background: #E6F1FB; border-color: #85B7EB; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.decision-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.decision-row:last-child { border-bottom: none; }
+.decision-q { font-size: 13px; color: var(--color-text-secondary); min-width: 120px; flex-shrink: 0; }
+.decision-a { font-size: 13px; color: var(--color-text-primary); font-weight: 500; }
+.decision-note { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+</style>
+
+<div class="db-root">
+  <div class="db-header">
+    <p class="db-title">StockApp — 프로젝트 설계 현황</p>
+    <span class="db-sub">Spring Boot · Phase 1 진행중</span>
+    <span class="badge badge-amber">설계 단계</span>
+  </div>
+
+  <div class="section">
+    <p class="section-label">개요</p>
+    <div class="grid-4">
+      <div class="card-sm">
+        <p class="stat-label">백엔드</p>
+        <p class="stat-val" style="font-size:15px;">Spring Boot</p>
+      </div>
+      <div class="card-sm">
+        <p class="stat-label">AI 서비스</p>
+        <p class="stat-val" style="font-size:15px;">Django</p>
+      </div>
+      <div class="card-sm">
+        <p class="stat-label">도메인 수</p>
+        <p class="stat-val">8</p>
+      </div>
+      <div class="card-sm">
+        <p class="stat-label">현재 단계</p>
+        <p class="stat-val" style="font-size:15px;">Phase 1</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="gap:12px; margin-bottom:1.75rem;">
+
+    <div class="section" style="margin:0;">
+      <p class="section-label">아키텍처 레이어</p>
+      <div class="card" style="padding: 0.85rem 1rem;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div class="row-between">
+            <span class="mono hl">Frontend</span>
+            <span class="badge badge-gray">배제 (현재)</span>
+          </div>
+          <hr class="divider">
+          <div class="row-between">
+            <span class="mono hl">API Gateway / Nginx</span>
+            <span class="badge badge-gray">라우팅</span>
+          </div>
+          <hr class="divider">
+          <div class="row-between">
+            <span class="mono hl">Spring Boot Core</span>
+            <span class="badge badge-blue">메인</span>
+          </div>
+          <div class="row-between" style="padding-left:12px;">
+            <span class="mono dim">포트폴리오 · 시세 · TACO · Polymarket</span>
+          </div>
+          <hr class="divider">
+          <div class="row-between">
+            <span class="mono hl">Django AI Service</span>
+            <span class="badge badge-teal">Python</span>
+          </div>
+          <div class="row-between" style="padding-left:12px;">
+            <span class="mono dim">뉴스 크롤러 · LLM · 감성분석</span>
+          </div>
+          <hr class="divider">
+          <div class="row-between">
+            <span class="mono hl">Kafka</span>
+            <span class="badge badge-amber">이벤트 버스</span>
+          </div>
+          <hr class="divider">
+          <div class="row-between">
+            <span class="mono hl">PostgreSQL · Redis · TimescaleDB</span>
+            <span class="badge badge-gray">저장소</span>
+          </div>
+          <hr class="divider">
+          <div class="row-between">
+            <span class="mono hl">Local LLM (Ollama)</span>
+            <span class="badge badge-teal">Django 호출</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="margin:0;">
+      <p class="section-label">도메인 목록</p>
+      <div class="card" style="padding: 0.85rem 1rem;">
+        <div style="display:flex; flex-direction:column; gap:5px;">
+          <div class="row-between">
+            <div class="row gap-6"><div class="dot dot-teal"></div><span class="mono hl">auth</span></div>
+            <span class="mono dim">로그인 · JWT · OAuth</span>
+          </div>
+          <div class="row-between">
+            <div class="row" style="gap:6px;"><div class="dot dot-teal"></div><span class="mono hl">portfolio</span></div>
+            <span class="mono dim">종목 · 비중 · 수익률</span>
+          </div>
+          <div class="row-between">
+            <div class="row" style="gap:6px;"><div class="dot dot-teal"></div><span class="mono hl">stock</span></div>
+            <span class="mono dim">시세 · 종목 마스터</span>
+          </div>
+          <div class="row-between">
+            <div class="row" style="gap:6px;"><div class="dot dot-teal"></div><span class="mono hl">taco</span></div>
+            <span class="mono dim">트럼프 관세 지수</span>
+          </div>
+          <div class="row-between">
+            <div class="row" style="gap:6px;"><div class="dot dot-gray"></div><span class="mono hl">news</span></div>
+            <span class="mono dim">뉴스 수신 · 알림</span>
+          </div>
+          <div class="row-between">
+            <div class="row" style="gap:6px;"><div class="dot dot-gray"></div><span class="mono hl">polymarket</span></div>
+            <span class="mono dim">예측시장 분석</span>
+          </div>
+          <div class="row-between">
+            <div class="row" style="gap:6px;"><div class="dot dot-gray"></div><span class="mono hl">trade</span></div>
+            <span class="mono dim">자동매매 주문</span>
+          </div>
+          <div class="row-between">
+            <div class="row" style="gap:6px;"><div class="dot dot-gray"></div><span class="mono hl">notification</span></div>
+            <span class="mono dim">WebSocket · Push</span>
+          </div>
+          <hr class="divider">
+          <div style="display:flex; gap:10px; font-size:11px; color:var(--color-text-tertiary);">
+            <div class="row" style="gap:5px;"><div class="dot dot-teal"></div>Phase 1 대상</div>
+            <div class="row" style="gap:5px;"><div class="dot dot-gray"></div>이후 단계</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-label">패키지 구조</p>
+    <div class="card">
+      <div class="grid-2" style="gap: 1.5rem;">
+        <div>
+          <p style="font-size:12px; font-weight:500; color:var(--color-text-secondary); margin:0 0 8px;">공통 패키지</p>
+          <div class="pkg-tree">
+            <div><span class="hl">com.stockapp</span></div>
+            <div>├── <span class="hl">config/</span></div>
+            <div class="dim">│   ├── SecurityConfig</div>
+            <div class="dim">│   ├── RedisConfig</div>
+            <div class="dim">│   ├── KafkaConfig</div>
+            <div class="dim">│   └── WebSocketConfig</div>
+            <div>├── <span class="hl">global/</span></div>
+            <div class="dim">│   ├── exception/</div>
+            <div class="dim">│   ├── response/</div>
+            <div class="dim">│   └── util/</div>
+            <div>└── <span class="hl">infra/</span></div>
+            <div class="dim">    ├── redis/</div>
+            <div class="dim">    ├── kafka/</div>
+            <div class="dim">    └── client/</div>
+            <div class="dim">        ├── KisApiClient</div>
+            <div class="dim">        ├── PolymarketClient</div>
+            <div class="dim">        └── DjangoAiClient</div>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:12px; font-weight:500; color:var(--color-text-secondary); margin:0 0 8px;">도메인 내부 레이어 (공통)</p>
+          <div class="pkg-tree">
+            <div><span class="hl">domain/{name}/</span></div>
+            <div>├── <span class="hl">controller/</span></div>
+            <div class="dim">│   └── XxxController</div>
+            <div>├── <span class="hl">service/</span></div>
+            <div class="dim">│   ├── XxxService</div>
+            <div class="dim">│   └── XxxServiceImpl</div>
+            <div>├── <span class="hl">domain/</span></div>
+            <div class="dim">│   └── Xxx (Entity · Enum)</div>
+            <div>├── <span class="hl">repository/</span></div>
+            <div class="dim">│   └── XxxRepository</div>
+            <div>├── <span class="hl">dto/</span></div>
+            <div class="dim">│   ├── XxxRequest</div>
+            <div class="dim">│   └── XxxResponse</div>
+            <div>└── <span class="hl">scheduler/ · event/</span></div>
+            <div class="dim">    (필요한 도메인만)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-label">핵심 설계 결정</p>
+    <div class="card" style="padding: 0.85rem 1.25rem;">
+      <div class="decision-row">
+        <div class="decision-q">연관관계 전략</div>
+        <div>
+          <div class="decision-a">전체 ID 참조 방식으로 통일</div>
+          <div class="decision-note">c2c 프로젝트 v1→v2 마이그레이션 경험 반영 · 코드베이스 일관성 우선</div>
+        </div>
+      </div>
+      <div class="decision-row">
+        <div class="decision-q">도메인 간 통신</div>
+        <div>
+          <div class="decision-a">이벤트 (Kafka) 또는 서비스 인터페이스</div>
+          <div class="decision-note">도메인 간 직접 참조 금지 · 향후 MSA 분리 대비</div>
+        </div>
+      </div>
+      <div class="decision-row">
+        <div class="decision-q">종목 식별자</div>
+        <div>
+          <div class="decision-a">stockCode (String)</div>
+          <div class="decision-note">Long PK 대신 종목코드 문자열 · 외부 API 응답과 자연스러운 매핑</div>
+        </div>
+      </div>
+      <div class="decision-row">
+        <div class="decision-q">Spring ↔ Django</div>
+        <div>
+          <div class="decision-a">REST API (WebClient) + Kafka 이벤트</div>
+          <div class="decision-note">뉴스·LLM·감성분석은 Django 전담 · Spring은 결과만 소비</div>
+        </div>
+      </div>
+      <div class="decision-row">
+        <div class="decision-q">프론트엔드</div>
+        <div>
+          <div class="decision-a">현재 범위 제외</div>
+          <div class="decision-note">백엔드 API 우선 개발</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <p class="section-label">개발 단계</p>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <div class="phase-row">
+        <div class="phase-cell phase-now" style="font-weight:500;">Phase 1 — 지금</div>
+        <div class="phase-cell phase-now">포트폴리오 CRUD</div>
+        <div class="phase-cell phase-now">증권사 API 시세</div>
+        <div class="phase-cell phase-now">auth · stock 도메인</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-cell">Phase 2</div>
+        <div class="phase-cell">Django 뉴스 크롤러</div>
+        <div class="phase-cell">Local LLM 요약 API</div>
+        <div class="phase-cell">감성분석 파이프라인</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-cell">Phase 3</div>
+        <div class="phase-cell">TACO Index 산출</div>
+        <div class="phase-cell">Polymarket 연동</div>
+        <div class="phase-cell">데이터 파이프라인</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-cell">Phase 4</div>
+        <div class="phase-cell">Kafka 이벤트 버스</div>
+        <div class="phase-cell">WebSocket 알림</div>
+        <div class="phase-cell">실시간 시세 Push</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-cell">Phase 5</div>
+        <div class="phase-cell">자동매매 신호</div>
+        <div class="phase-cell">리스크 관리</div>
+        <div class="phase-cell">주문 실행</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-bottom:0;">
+    <p class="section-label">기술 스택</p>
+    <div class="tag-row">
+      <span class="badge badge-blue">Spring Boot 3</span>
+      <span class="badge badge-blue">Java 21</span>
+      <span class="badge badge-blue">Spring Security</span>
+      <span class="badge badge-blue">Spring Data JPA</span>
+      <span class="badge badge-blue">QueryDSL</span>
+      <span class="badge badge-blue">WebClient</span>
+      <span class="badge badge-blue">WebSocket</span>
+      <span class="badge badge-teal">Django</span>
+      <span class="badge badge-teal">Celery</span>
+      <span class="badge badge-teal">Scrapy</span>
+      <span class="badge badge-teal">FinBERT</span>
+      <span class="badge badge-teal">Ollama</span>
+      <span class="badge badge-amber">Kafka</span>
+      <span class="badge badge-amber">Redis</span>
+      <span class="badge badge-gray">PostgreSQL</span>
+      <span class="badge badge-gray">TimescaleDB</span>
+      <span class="badge badge-gray">Nginx</span>
+    </div>
+  </div>
+</div>
