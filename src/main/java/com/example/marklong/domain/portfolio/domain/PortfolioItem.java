@@ -23,25 +23,23 @@ public class PortfolioItem extends SoftDeleteEntity {
     private Long portfolioId;
 
     @Column(nullable = false)
+    private Long holdingId;
+
+    @Column(nullable = false)
     private String stockCode;   //  stock domain id
 
-    @Column(nullable = false, precision = 18, scale = 6)
-    private BigDecimal quantity;
-
-    @Column(nullable = false, precision = 18, scale = 4)
-    private BigDecimal avgPrice;
+    @Column(nullable = false)
+    private BigDecimal allocatedQuantity;
 
     @Builder
-    private PortfolioItem(Long portfolioId, String stockCode, BigDecimal quantity, BigDecimal avgPrice) {
+    public PortfolioItem(Long portfolioId, Long holdingId, String stockCode, BigDecimal allocatedQuantity) {
         this.portfolioId = portfolioId;
+        this.holdingId = holdingId;
         this.stockCode = stockCode;
-        this.quantity = quantity;
-        this.avgPrice = avgPrice;
+        this.allocatedQuantity = allocatedQuantity;
     }
 
-    public void updateHolding(BigDecimal newQuantity, BigDecimal newAvgPrice) {
-        this.quantity = newQuantity;
-        this.avgPrice = newAvgPrice;
+    public void updateAllocation(BigDecimal allocatedQuantity) {
+        this.allocatedQuantity = allocatedQuantity;
     }
-
 }
