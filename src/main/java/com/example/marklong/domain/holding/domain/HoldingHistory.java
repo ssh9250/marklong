@@ -35,16 +35,19 @@ public class HoldingHistory extends BaseEntity {
     @Column(nullable = false, precision = 18, scale = 4)
     private BigDecimal price;
 
+    private String memo;
+
     @Column(nullable = false)
     private LocalDateTime tradedAt;
 
     @Builder
-    private  HoldingHistory(Long userId, String stockCode, TradeType tradeType, BigDecimal quantity, BigDecimal price, LocalDateTime tradedAt) {
+    private  HoldingHistory(Long userId, String stockCode, TradeType tradeType, BigDecimal quantity, BigDecimal price, String memo, LocalDateTime tradedAt) {
         this.userId = userId;
         this.stockCode = stockCode;
         this.tradeType = tradeType;
         this.quantity = quantity;
         this.price = price;
+        this.memo = memo;
         this.tradedAt = tradedAt;
     }
 }
