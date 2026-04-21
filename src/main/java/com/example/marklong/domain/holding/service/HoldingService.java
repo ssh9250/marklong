@@ -81,7 +81,9 @@ public class HoldingService {
                 .toList();
     }
 
-    // queryDSL로 condition을 통해 동적 검색 예정
+    // todo: queryDSL로 condition을 통해 동적 검색 예정
+    // cond = null일 경우 모든 종목(code) 모든 거래방식(sell, buy) 모두 호출
+    // 종목별, 거래방식별, memo 유무 별 filter
     @Transactional(readOnly = true)
     public List<HoldingHistory> getHistory(Long userId, String stockCode) {
         return null;

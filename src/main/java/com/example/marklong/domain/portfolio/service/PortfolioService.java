@@ -3,6 +3,7 @@ package com.example.marklong.domain.portfolio.service;
 import com.example.marklong.domain.holding.domain.Holding;
 import com.example.marklong.domain.holding.repository.HoldingRepository;
 import com.example.marklong.domain.portfolio.domain.Portfolio;
+import com.example.marklong.domain.portfolio.domain.PortfolioItem;
 import com.example.marklong.domain.portfolio.dto.*;
 import com.example.marklong.domain.portfolio.repository.PortfolioItemRepository;
 import com.example.marklong.domain.portfolio.repository.PortfolioRepository;
@@ -58,15 +59,51 @@ public class PortfolioService {
 
     public void delete(Long userId, Long portfolioId) {
         Portfolio portfolio = getPortfolioOrThrow(userId, portfolioId);
+        portfolioItemRepository.findAllByPortfolioIdAndDeletedAtIsNull(portfolioId)
+                .forEach(pi -> {
+                    Holding holding = holdingRepository.findById(pi.getHoldingId())
+                            .orElseThrow(() -> new BusinessException(ErrorCode.HOLDING_NOT_FOUND));
+                    holding.deallocate(pi.getAllocatedQuantity());
+                    pi.delete();
+                });
         portfolio.delete();
     }
 
-//    public PortfolioItemResponse addItem(Long userId, Long portfolioId, TradeRequest request) {
-//        getPortfolioOrThrow(userId, portfolioId);
-//
-//        PortfolioItem item = portfolioItemRepository
-//                .findByPortfolioIdAndStockCodeAndDeletedAtIsNull(portfolioId, request.getStockCode());
-//    }
+    public PortfolioItemResponse allocate(Long userId, Long portfolioId, AllocateRequest request) {
+        getPortfolioOrThrow(userId, portfolioId);
+        Stock stock = stockRepository.findByStockCodeAndActiveTrue(request.getStockCode())
+                .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
+        Holding holding = holdingRepository.findByUserIdAndStockCodeAndDeletedAtIsNull(userId, request.getStockCode())
+                .orElseThrow(() -> new BusinessException(ErrorCode.HOLDING_NOT_FOUND));
+
+        holding.allocate(request.getQuantity());
+
+        PortfolioItem item = portfolioItemRepository.findByPortfolioIdAndHoldingIdAndDeletedAtIsNull(portfolioId, holding.getId())
+                .map(existing -> {
+                    existing.updateAllocation(existing.getAllocatedQuantity().add(request.getQuantity()));
+                    return existing;
+                })
+                .orElseGet(() -> portfolioItemRepository.save(
+                        PortfolioItem.builder()
+                                .portfolioId(portfolioId)
+                                .holdingId(holding.getId())
+                                .stockCode(request.getStockCode())
+                                .allocatedQuantity(request.getQuantity())
+                                .build()
+                ));
+        return PortfolioItemResponse.of(item, stock.getName(), holding, BigDecimal.ZERO);   //  todo: currentPrice 변경 필요
+    }
+
+    public void deallocate(Long userId, Long portfolioId, Long itemId) {
+        getPortfolioOrThrow(userId, portfolioId);
+        PortfolioItem item = portfolioItemRepository.findByIdAndDeletedAtIsNull(itemId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PORTFOLIO_ITEM_NOT_FOUND));
+        holdingRepository.findByUserIdAndStockCodeAndDeletedAtIsNull(userId, item.getStockCode())
+                .ifPresent(holding -> {holding.deallocate(item.getAllocatedQuantity());});
+
+        item.delete();
+    }
+
 
     private Portfolio getPortfolioOrThrow(Long userId, Long portfolioId) {
         return portfolioRepository.findByIdAndUserIdAndDeletedAtIsNull(portfolioId, userId)
@@ -81,7 +118,7 @@ public class PortfolioService {
         BigDecimal totalValuation = items.stream()
                 .map(PortfolioItemResponse::getValuation)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return  PortfolioResponse.of(portfolio, totalInvestment, totalValuation);
+        return PortfolioResponse.of(portfolio, totalInvestment, totalValuation);
     }
 
     private List<PortfolioItemResponse> buildItemResponse(Long portfolioId) {
