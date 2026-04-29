@@ -11,7 +11,7 @@ import com.example.marklong.domain.auth.repository.RefreshTokenRepository;
 import com.example.marklong.domain.auth.repository.UserRepository;
 import com.example.marklong.global.exception.BusinessException;
 import com.example.marklong.global.exception.ErrorCode;
-import com.example.marklong.global.jwt.JwtTokenProvider;
+import com.example.marklong.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

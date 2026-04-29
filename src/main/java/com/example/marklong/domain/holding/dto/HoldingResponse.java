@@ -12,6 +12,7 @@ public class HoldingResponse {
     private String stockCode;
     private BigDecimal quantity;
     private BigDecimal avgPrice;
+    private String memo;
 
     public static HoldingResponse from(Holding holding){
         return HoldingResponse.builder()

@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
 
 
 @Entity
@@ -36,6 +37,8 @@ public class User extends SoftDeleteEntity {
 
     private String oauthId;
 
+    private Boolean enabled;
+
     @Builder
     private User(String email, String password, String nickname, Role role, OAuthProvider provider, String oauthId) {
         this.email = email;
@@ -44,6 +47,7 @@ public class User extends SoftDeleteEntity {
         this.role = role;
         this.provider = provider;
         this.oauthId = oauthId;
+        this.enabled = true;
     }
 
     public void updateNickname(String nickname) {

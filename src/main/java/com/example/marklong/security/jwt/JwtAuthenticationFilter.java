@@ -1,4 +1,4 @@
-package com.example.marklong.global.jwt;
+package com.example.marklong.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,4 +1,4 @@
-package com.example.marklong.global.jwt;
+package com.example.marklong.security.jwt;
 
 import com.study.shop.security.auth.CustomUserDetailsService;
 import io.jsonwebtoken.*;

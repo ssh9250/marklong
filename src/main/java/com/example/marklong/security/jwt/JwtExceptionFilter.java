@@ -1,4 +1,4 @@
-package com.example.marklong.global.jwt;
+package com.example.marklong.security.jwt;
 
 import com.study.shop.global.exception.ErrorCode;
 import com.study.shop.security.exception.ExpiredTokenException;

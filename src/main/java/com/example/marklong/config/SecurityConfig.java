@@ -1,8 +1,8 @@
 package com.example.marklong.config;
 
 import com.example.marklong.global.exception.ErrorCode;
-import com.example.marklong.global.jwt.JwtAuthenticationFilter;
-import com.example.marklong.global.jwt.JwtExceptionFilter;
+import com.example.marklong.security.jwt.JwtAuthenticationFilter;
+import com.example.marklong.security.jwt.JwtExceptionFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,8 +28,8 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
-    //    private final JwtTokenProvider jwtTokenProvider;
-//    private final StringRedisTemplate stringRedisTemplate;
+        private final JwtTokenProvider jwtTokenProvider;
+    private final StringRedisTemplate stringRedisTemplate;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtExceptionFilter jwtExceptionFilter;
 

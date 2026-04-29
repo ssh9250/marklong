@@ -9,4 +9,5 @@ public class HoldingSellRequest {
     private String stockCode;
     private BigDecimal quantity;
     private BigDecimal price;
+    private String memo;
 }
