@@ -6,10 +6,10 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class TokenResponse {
-    private final String acessToken;
+    private final String accessToken;
     private final String refreshToken;
 
-    public static TokenResponse of(String token, String refreshToken) {
-        return new TokenResponse(token, refreshToken);
+    public static TokenResponse of(String accessToken, String refreshToken) {
+        return new TokenResponse(accessToken, refreshToken);
     }
 }

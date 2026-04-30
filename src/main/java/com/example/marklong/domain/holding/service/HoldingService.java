@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class HoldingService {
     private final HoldingHistoryRepository holdingHistoryRepository;
 
     public HoldingResponse buy(Long userId, HoldingBuyRequest request) {
+
         Holding holding = holdingRepository
                 .findByUserIdAndStockCodeAndDeletedAtIsNull(userId, request.getStockCode())
                 .map(existing -> {
@@ -66,6 +68,7 @@ public class HoldingService {
                         .tradeType(TradeType.SELL)
                         .quantity(request.getQuantity())
                         .price(request.getPrice())
+                        .avgPriceAtTrade(holding.getAvgPrice())
                         .tradedAt(LocalDateTime.now())
                         .memo(request.getMemo())
                         .build()

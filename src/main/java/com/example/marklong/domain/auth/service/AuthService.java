@@ -32,7 +32,7 @@ public class AuthService {
         }
         User user = User.builder()
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
                 .role(Role.ROLE_USER)
                 .provider(OAuthProvider.LOCAL)
@@ -51,9 +51,11 @@ public class AuthService {
         String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
         String refreshToken = jwtProvider.createRefreshToken();
 
+        // 기존 refresh token이 있으면 RTR 방식으로 교체, 없으면 신규 발급
+        // 현재는 userId 당 단일 세션 정책 (추후 멀티 디바이스 지원 시 변경)
         refreshTokenRepository.findByUserId(user.getId())
                 .ifPresentOrElse(
-                        token -> token.rotate(refreshToken, jwtProvider.getRefreshExpiry()),
+                        existing -> existing.rotate(refreshToken, jwtProvider.getRefreshExpiry()),
                         () -> refreshTokenRepository.save(RefreshToken.builder()
                                 .userId(user.getId())
                                 .token(refreshToken)
@@ -69,20 +71,32 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
 
         if (token.isExpired()) {
+            // 만료된 토큰은 DB에서 제거 후 재인증 요구
+            refreshTokenRepository.delete(token);
             throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
         }
 
-        User user = userRepository.findById(token.getUserId())
+        // soft delete된 유저는 재발급 불가
+        User user = userRepository.findUserByIdAndDeletedAtIsNull(token.getUserId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         String newAccessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
         String newRefreshToken = jwtProvider.createRefreshToken();
+
+        // RTR: 기존 토큰을 새 토큰으로 교체
         token.rotate(newRefreshToken, jwtProvider.getRefreshExpiry());
+        // TODO: Redis 도입 시 → 이전 refreshToken을 Redis blacklist에 추가 (짧은 TTL)
 
         return TokenResponse.of(newAccessToken, newRefreshToken);
     }
 
-    public void logout(Long userId) {
+    /**
+     * @param accessToken 로그아웃 시 무효화할 access token
+     *                    (추후 Redis blacklist에 남은 만료 시간만큼 등록 예정)
+     */
+    public void logout(Long userId, String accessToken) {
         refreshTokenRepository.deleteByUserId(userId);
+        // TODO: Redis 도입 시 → accessToken을 blacklist:{accessToken} 키로 Redis에 저장
+        //       TTL = jwtProvider.getRemainingExpiry(accessToken)
     }
 }
