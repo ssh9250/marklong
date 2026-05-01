@@ -38,10 +38,10 @@ public class HoldingHistory extends BaseEntity {
     private BigDecimal price;
 
     @Column(precision = 18, scale = 4)
-    private BigDecimal avgPriceAtTrade = null;  // 매도 시 스냅샷, 매수는 null
+    private BigDecimal avgPriceAtTrade = null;  // 매도 시 내 자산 평단가 스냅샷, 매수는 null
 
     @Column(precision = 18, scale = 4)
-    private BigDecimal realizedProfit;
+    private BigDecimal realizedProfit;  // 실현 손익. 역시 매수는 null
 
     private String memo;
 

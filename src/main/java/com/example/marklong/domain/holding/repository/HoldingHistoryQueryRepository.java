@@ -1,10 +1,8 @@
 package com.example.marklong.domain.holding.repository;
 
-import com.example.marklong.domain.holding.domain.HoldingHistory;
 import com.example.marklong.domain.holding.domain.TradeType;
 import com.example.marklong.domain.holding.dto.HistorySearchCondition;
 import com.example.marklong.domain.holding.dto.HoldingHistoryResponse;
-import com.example.marklong.domain.holding.dto.HoldingResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -29,6 +27,7 @@ public class HoldingHistoryQueryRepository {
                         holdingHistory.stockCode, holdingHistory.stockName, holdingHistory.quantity, holdingHistory.price, holdingHistory.memo))
                 .from(holdingHistory)
                 .where(
+                        userIdEq(userId),
                         stockCodeContains(cond.getStockCode()),
                         stockNameContains(cond.getStockName()),
                         memoContains(cond.getMemo()),
@@ -38,6 +37,10 @@ public class HoldingHistoryQueryRepository {
                         isProfit(cond.getIsProfit())
                 )
                 .fetch();
+    }
+
+    private BooleanExpression userIdEq(Long userId) {
+        return holdingHistory.userId.eq(userId);
     }
 
     private BooleanExpression stockCodeContains(String stockCode) {
@@ -61,15 +64,16 @@ public class HoldingHistoryQueryRepository {
     }
 
     private BooleanExpression tradeTypeEq(TradeType tradeType) {
-        return tradeType != null ? null : holdingHistory.tradeType.eq(tradeType);
+        return tradeType == null ? null : holdingHistory.tradeType.eq(tradeType);
     }
 
     private BooleanExpression isProfit(Boolean isProfit) {
-        if (isProfit == null){
+        if (isProfit == null) {
             return null;
         }
 
-        return null;
+        return isProfit
+                ? holdingHistory.realizedProfit.gt(BigDecimal.ZERO)
+                : holdingHistory.realizedProfit.loe(BigDecimal.ZERO);
     }
-
 }
