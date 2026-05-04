@@ -23,7 +23,7 @@ public class PortfolioController {
 
     @PostMapping
     @Operation(summary = "포트폴리오 생성")
-    public ResponseEntity<ApiResponse<PortfolioResponse>> create(
+    public ResponseEntity<ApiResponse<Long>> create(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody PortfolioCreateRequest request
     ) {

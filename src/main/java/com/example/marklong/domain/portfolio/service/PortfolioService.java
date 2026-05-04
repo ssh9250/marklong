@@ -27,14 +27,14 @@ public class PortfolioService {
     private final HoldingRepository holdingRepository;
     private final StockRepository stockRepository;
 
-    public PortfolioResponse create(Long userId, PortfolioCreateRequest request) {
+    public Long create(Long userId, PortfolioCreateRequest request) {
         Portfolio portfolio = Portfolio.builder()
                 .userId(userId)
                 .name(request.getName())
                 .description(request.getDescription())
                 .currency(request.getCurrency())
                 .build();
-        return PortfolioResponse.of(portfolioRepository.save(portfolio), BigDecimal.ZERO, BigDecimal.ZERO);
+        return portfolioRepository.save(portfolio).getId();
     }
 
     @Transactional(readOnly = true)

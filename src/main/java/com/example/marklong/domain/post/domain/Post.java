@@ -1,6 +1,8 @@
 package com.example.marklong.domain.post.domain;
 
 import com.example.marklong.global.entity.SoftDeleteEntity;
+import com.example.marklong.global.exception.BusinessException;
+import com.example.marklong.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -28,6 +30,8 @@ public class Post extends SoftDeleteEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    private int likeCount;
+
     private int viewCount;
 
     @Builder
@@ -36,15 +40,20 @@ public class Post extends SoftDeleteEntity {
         this.userId = userId;
         this.title = title;
         this.content = content;
+        this.likeCount = 0;
         this.viewCount = 0;
     }
 
     public void update(String title, String content) {
-        this.title = title;
-        this.content = content;
+        if (title != null) this.title = title;
+        if (content != null) this.content = content;
     }
 
     public void increaseViewCount() {
         this.viewCount++;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
     }
 }

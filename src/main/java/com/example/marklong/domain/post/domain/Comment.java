@@ -25,14 +25,21 @@ public class Comment extends SoftDeleteEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    private int likeCount;
+
     @Builder
     public Comment(Long postId, Long userId, String content) {
         this.postId = postId;
         this.userId = userId;
         this.content = content;
+        this.likeCount = 0;
     }
 
     public void update(String content) {
         this.content = content;
+    }
+
+    public void increaseLikeCount(){
+        this.likeCount++;
     }
 }

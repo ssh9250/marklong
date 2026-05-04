@@ -3,6 +3,8 @@ package com.example.marklong.domain.portfolio.domain;
 import com.example.marklong.domain.stock.domain.Currency;
 import com.example.marklong.global.entity.BaseEntity;
 import com.example.marklong.global.entity.SoftDeleteEntity;
+import com.example.marklong.global.exception.BusinessException;
+import com.example.marklong.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -39,7 +41,7 @@ public class Portfolio extends SoftDeleteEntity {
     }
 
     public void update(String name, String description) {
-        this.name = name;
-        this.description = description;
+        if (name != null) this.name = name;
+        if (description != null) this.description = description;
     }
 }
