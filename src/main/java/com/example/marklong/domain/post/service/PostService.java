@@ -9,6 +9,7 @@ import com.example.marklong.domain.post.repository.PostQueryRepository;
 import com.example.marklong.domain.post.repository.PostRepository;
 import com.example.marklong.global.exception.BusinessException;
 import com.example.marklong.global.exception.ErrorCode;
+import com.example.marklong.global.util.OwnerValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,14 @@ public class PostService {
         return postQueryRepository.searchPosts(condition);
     }
 
+    public List<PostListResponse> getMyPosts(Long userId, PostSearchCondition condition) {
+        PostSearchCondition myCondition = condition.toBuilder()
+                .userId(userId)
+                .writer(null)
+                .build();
+        return postQueryRepository.searchPosts(myCondition);
+    }
+
     public PostDetailResponse getPost(Long postId) {
         Post post = findPostOrThrow(postId);
         post.increaseViewCount(); // todo: redis caching, ip 기반 조회수 처리
@@ -53,15 +62,15 @@ public class PostService {
         return PostDetailResponse.from(post, writer, commentQueryRepository.getCommentsByPostId(postId));
     }
 
-    public void updatePost(Long userId, Long postId, PostUpdateRequest request) {
+    public void update(Long userId, Long postId, PostUpdateRequest request) {
         Post post = findPostOrThrow(postId);
-        validateOwner(userId, post);
+        OwnerValidator.validate(userId, post.getUserId());
         post.update(request.title(), request.content());
     }
 
-    public void deletePost(Long userId, Long postId) {
+    public void delete(Long userId, Long postId) {
         Post post = findPostOrThrow(postId);
-        validateOwner(userId, post);
+        OwnerValidator.validate(userId, post.getUserId());
         post.delete();
     }
 

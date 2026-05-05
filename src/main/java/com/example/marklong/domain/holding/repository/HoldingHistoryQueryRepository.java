@@ -61,6 +61,7 @@ public class HoldingHistoryQueryRepository {
 
     private BooleanExpression tradedAtTo(LocalDateTime to) {
         return to == null ? null : holdingHistory.tradedAt.lt(to.plusDays(1));
+        // less then + 1 => 선택한 날짜의 23:59:59 까지 모두 포함
     }
 
     private BooleanExpression tradeTypeEq(TradeType tradeType) {

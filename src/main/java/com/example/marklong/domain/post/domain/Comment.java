@@ -36,10 +36,10 @@ public class Comment extends SoftDeleteEntity {
     }
 
     public void update(String content) {
-        this.content = content;
+        if (content != null) this.content = content;
     }
 
-    public void increaseLikeCount(){
+    public void increaseLikeCount() {
         this.likeCount++;
     }
 }

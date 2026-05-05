@@ -1,6 +1,6 @@
 package com.example.marklong.domain.post.dto;
 
-public record CommentCreateRequest(
+public record CommentUpdateRequest(
         String content
 ) {
 }
