@@ -93,7 +93,7 @@ public class PostController {
     }
 
     @GetMapping("/{postId}/comments")
-    @Operation(summary = "게시글 댓글 목록 조회")
+    @Operation(summary = "게시글 댓글 목록 조회") // 어차피 post 단건 조회 시 같이 보내지만, 그래도 단일 api도 하나 만들어두자
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getComments(
             @PathVariable Long postId
     ) {
