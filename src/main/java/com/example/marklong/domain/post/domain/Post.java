@@ -32,8 +32,6 @@ public class Post extends SoftDeleteEntity {
 
     private int likeCount;
 
-    private int viewCount;
-
     @Builder
     public Post(String stockCode, Long userId, String title, String content) {
         this.stockCode = stockCode;
@@ -41,16 +39,11 @@ public class Post extends SoftDeleteEntity {
         this.title = title;
         this.content = content;
         this.likeCount = 0;
-        this.viewCount = 0;
     }
 
     public void update(String title, String content) {
         if (title != null) this.title = title;
         if (content != null) this.content = content;
-    }
-
-    public void increaseViewCount() {
-        this.viewCount++;
     }
 
     public void increaseLikeCount() {

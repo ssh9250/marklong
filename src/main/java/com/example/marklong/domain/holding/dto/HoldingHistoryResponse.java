@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 @Getter
 @NoArgsConstructor
 public class HoldingHistoryResponse {
+    private Long id;
     private String stockCode;
     private String stockName;
     private BigDecimal quantity;

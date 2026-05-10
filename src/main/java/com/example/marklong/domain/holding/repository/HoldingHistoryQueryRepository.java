@@ -24,7 +24,7 @@ public class HoldingHistoryQueryRepository {
     public List<HoldingHistoryResponse> searchHistory(Long userId, HistorySearchCondition cond) {
         return queryFactory
                 .select(Projections.constructor(HoldingHistoryResponse.class,
-                        holdingHistory.stockCode, holdingHistory.stockName, holdingHistory.quantity, holdingHistory.price, holdingHistory.memo))
+                        holdingHistory.id, holdingHistory.stockCode, holdingHistory.stockName, holdingHistory.quantity, holdingHistory.price, holdingHistory.memo))
                 .from(holdingHistory)
                 .where(
                         userIdEq(userId),
@@ -36,6 +36,7 @@ public class HoldingHistoryQueryRepository {
                         tradeTypeEq(cond.getTradeType()),
                         isProfit(cond.getIsProfit())
                 )
+                .orderBy(holdingHistory.tradedAt.desc())
                 .fetch();
     }
 

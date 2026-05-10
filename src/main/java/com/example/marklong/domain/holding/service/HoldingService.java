@@ -99,6 +99,7 @@ public class HoldingService {
 
         // todo: redis 연동, timescaleDB에서 현재가 가져오기
         return new HoldingDetailResponse(
+                holding.getId(),
                 stock.getStockCode(),
                 stock.getName(),
                 holding.getAvgPrice(),

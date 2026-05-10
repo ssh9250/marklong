@@ -24,7 +24,7 @@ public class PostQueryRepository {
 
     public List<PostListResponse> searchPosts(PostSearchCondition condition) {
         return queryFactory.select(Projections.constructor(PostListResponse.class,
-                        post.stockCode, post.title, user.nickname, post.likeCount, post.viewCount, post.createdAt))
+                        post.stockCode, post.title, user.nickname, post.likeCount, post.createdAt))
                 .from(post)
                 .join(user).on(post.userId.eq(user.id))
                 .where(

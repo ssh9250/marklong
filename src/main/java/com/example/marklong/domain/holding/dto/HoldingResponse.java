@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 @Getter
 @Builder
 public class HoldingResponse {
+    private Long id;
     private String stockCode;
     private BigDecimal quantity;
     private BigDecimal avgPrice;
@@ -16,6 +17,7 @@ public class HoldingResponse {
 
     public static HoldingResponse from(Holding holding){
         return HoldingResponse.builder()
+                .id(holding.getId())
                 .stockCode(holding.getStockCode())
                 .quantity(holding.getTotalQuantity())
                 .avgPrice(holding.getAvgPrice())

@@ -1,4 +1,4 @@
-package com.example.marklong.domain.calendar.domain;
+package com.example.marklong.domain.event.domain;
 
 public enum EventType {
     EARNINGS,   // 실적 발표

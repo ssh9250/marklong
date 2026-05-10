@@ -53,7 +53,6 @@ public class PostService {
 
     public PostDetailResponse getPost(Long postId) {
         Post post = findPostOrThrow(postId);
-        post.increaseViewCount(); // todo: redis caching, ip 기반 조회수 처리
 
         User user = userRepository.findUserByIdAndDeletedAtIsNull(post.getUserId()).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         String writer = user.getNickname();

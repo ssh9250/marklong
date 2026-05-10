@@ -4,6 +4,7 @@ package com.example.marklong.domain.holding.dto;
 import java.math.BigDecimal;
 
 public record HoldingDetailResponse(
+        Long id,
         String stockCode,
         String stockName,
         BigDecimal avgPrice,
