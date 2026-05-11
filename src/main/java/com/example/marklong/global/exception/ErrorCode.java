@@ -38,6 +38,8 @@ public enum ErrorCode {
 
     // global
 
+    DATA_NOT_FOUND(HttpStatus.NOT_FOUND, "DATA_004", "해당 데이터를 찾을 수 없습니다."),
+
 ;
     private final HttpStatus httpStatus;
     private final String code;

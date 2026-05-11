@@ -52,7 +52,7 @@ public class PostService {
     }
 
     public PostDetailResponse getPost(Long postId) {
-        Post post = findPostOrThrow(postId);
+        Post post = getPostOrThrow(postId);
 
         User user = userRepository.findUserByIdAndDeletedAtIsNull(post.getUserId()).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         String writer = user.getNickname();
@@ -62,18 +62,18 @@ public class PostService {
     }
 
     public void update(Long userId, Long postId, PostUpdateRequest request) {
-        Post post = findPostOrThrow(postId);
+        Post post = getPostOrThrow(postId);
         OwnerValidator.validate(userId, post.getUserId());
         post.update(request.title(), request.content());
     }
 
     public void delete(Long userId, Long postId) {
-        Post post = findPostOrThrow(postId);
+        Post post = getPostOrThrow(postId);
         OwnerValidator.validate(userId, post.getUserId());
         post.delete();
     }
 
-    private Post findPostOrThrow(Long postId) {
+    private Post getPostOrThrow(Long postId) {
         return postRepository.findByIdAndDeletedAtIsNull(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
     }
 

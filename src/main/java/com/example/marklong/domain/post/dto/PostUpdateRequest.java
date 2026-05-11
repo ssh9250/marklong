@@ -1,8 +1,11 @@
 package com.example.marklong.domain.post.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record PostUpdateRequest(
-        String title,
-        String content,
-        String stockCode
+        @NotBlank String title,
+        @NotNull String content,
+        @NotNull String stockCode
 ) {
 }

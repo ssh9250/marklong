@@ -34,7 +34,7 @@ public class EventQueryRepository {
                         titleContains(condition.title()),
                         descriptionContains(condition.description()),
                         eventDateFrom(condition.from()),
-                        eventDateFrom(condition.to())
+                        eventDateTo(condition.to())
                 )
                 .orderBy(calendarEvent.id.asc())
                 .fetch();

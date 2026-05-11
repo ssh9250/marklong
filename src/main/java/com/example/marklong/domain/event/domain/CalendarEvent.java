@@ -46,4 +46,12 @@ public class CalendarEvent extends SoftDeleteEntity {
         this.title = title;
         this.description = description;
     }
+
+    public void update(String stockCode, EventType eventType, LocalDateTime eventDate, String title, String description) {
+        this.stockCode = stockCode;
+        this.eventType = eventType;
+        this.eventDate = eventDate;
+        this.title = title;
+        this.description = description;
+    }
 }
