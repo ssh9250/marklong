@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -52,8 +53,15 @@ public class EventService {
         return calendarEvent.getId();
     }
 
+    @Transactional(readOnly = true)
     public List<EventResponse> searchEvents(Long userId, EventSearchCondition condition) {
         return eventQueryRepository.searchEvents(userId, condition);
+    }
+
+    @Transactional(readOnly = true)
+    public EventResponse getEvent(Long eventId) {
+        CalendarEvent event = getEventOrThrow(eventId);
+        return EventResponse.from(event);
     }
 
     public void update(Long userId, Role role, Long eventId, EventUpdateRequest request) {

@@ -52,6 +52,10 @@ public class EventQueryRepository {
     }
 
     private BooleanExpression sourceIn(Set<EventSource> eventSource, Long requestUserId) {
+        if (requestUserId == null) {
+            return calendarEvent.eventSource.ne(EventSource.USER);
+        }
+
         if (eventSource == null || eventSource.isEmpty()) {
             return calendarEvent.eventSource.ne(EventSource.USER)
                     .or(calendarEvent.userId.eq(requestUserId));

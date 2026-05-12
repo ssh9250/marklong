@@ -30,6 +30,7 @@ public class Post extends SoftDeleteEntity {
     @Column(nullable = false)
     private String content;
 
+    @Column(nullable = false)
     private int likeCount;
 
     @Builder

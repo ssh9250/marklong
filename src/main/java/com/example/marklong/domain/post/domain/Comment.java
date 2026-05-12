@@ -25,6 +25,7 @@ public class Comment extends SoftDeleteEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(nullable = false)
     private int likeCount;
 
     @Builder

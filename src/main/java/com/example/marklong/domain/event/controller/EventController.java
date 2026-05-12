@@ -44,12 +44,22 @@ public class EventController {
     }
 
     @GetMapping
-    @Operation(summary = "이벤트 목록 검색", description = "종목 코드·이벤트 유형·출처·기간 조건으로 검색합니다. eventType, eventSource는 반복 파라미터로 복수 전달 가능합니다.")
+    @Operation(summary = "이벤트 목록 검색", description = "종목 코드·이벤트 유형·출처·기간 조건으로 검색합니다. eventType, eventSource는 반복 파라미터로 복수 전달 가능합니다. 비회원은 공개 이벤트만 조회 가능합니다.")
     public ResponseEntity<ApiResponse<List<EventResponse>>> searchEvents(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @ModelAttribute EventSearchCondition condition
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(eventService.searchEvents(userDetails.getUserId(), condition)));
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+
+        return ResponseEntity.ok(ApiResponse.ok(eventService.searchEvents(userId, condition)));
+    }
+
+    @GetMapping("/{eventId}")
+    @Operation(summary = "이벤트 단건 조회")
+    public ResponseEntity<ApiResponse<EventResponse>> getEvent(
+            @PathVariable Long eventId
+    ) {
+        return ResponseEntity.ok(ApiResponse.ok(eventService.getEvent(eventId)));
     }
 
     @PutMapping("/{eventId}")
