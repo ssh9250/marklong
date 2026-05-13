@@ -34,6 +34,10 @@
 
       --gray-bg: #F1EFE8;
       --gray-border: #D8D5CC;
+
+      --done-bg: #F4F3F0;
+      --done-border: #CCCAC3;
+      --done-text: #888580;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -202,6 +206,7 @@
       margin-right: 10px;
     }
     .dot-teal  { background: var(--teal); }
+    .dot-blue  { background: var(--blue); }
     .dot-gray  { background: #BCBAB3; }
     .domain-row .name {
       font-family: 'DM Mono', monospace;
@@ -302,7 +307,7 @@
     /* ── Design decisions ── */
     .decision-item {
       display: grid;
-      grid-template-columns: 160px 1fr;
+      grid-template-columns: 180px 1fr;
       gap: 16px;
       padding: 12px 0;
       border-bottom: 1px solid var(--border-soft);
@@ -345,6 +350,16 @@
       font-weight: 500;
     }
     .phase-cell.now.phase-label { color: var(--blue); }
+    .phase-cell.done {
+      background: var(--done-bg);
+      border-color: var(--done-border);
+      color: var(--done-text);
+    }
+    .phase-cell.done.phase-label {
+      color: var(--done-text);
+      text-decoration: line-through;
+      text-decoration-color: #BCBAB3;
+    }
 
     /* ── Tech stack ── */
     .stack-row {
@@ -383,22 +398,22 @@
       </div>
     </div>
     <div class="header-right">
-      <span class="badge badge-amber">설계 · Phase 1 진행중</span>
-      <span style="font-size:11px; color:var(--text-3); font-family:'DM Mono',monospace;">Java 21 · Spring Boot 3</span>
+      <span class="badge badge-teal">Phase 1 완료 · Phase 2 진행중</span>
+      <span style="font-size:11px; color:var(--text-3); font-family:'DM Mono',monospace;">Java 17 · Spring Boot 3</span>
     </div>
   </header>
 
   <!-- ── Stats ── -->
   <div class="stats-strip">
     <div class="stat-cell">
-      <div class="label">도메인 수</div>
-      <div class="value">10</div>
-      <div class="hint">전체 설계 기준</div>
+      <div class="label">전체 도메인</div>
+      <div class="value">11</div>
+      <div class="hint">event 추가 (Phase 1 선완)</div>
     </div>
     <div class="stat-cell">
-      <div class="label">Phase 1 대상</div>
-      <div class="value">5</div>
-      <div class="hint">auth · stock · holding · portfolio · post</div>
+      <div class="label">Phase 1 구현 완료</div>
+      <div class="value">6</div>
+      <div class="hint">auth · stock · holding · portfolio · post · event</div>
     </div>
     <div class="stat-cell">
       <div class="label">백엔드</div>
@@ -407,8 +422,8 @@
     </div>
     <div class="stat-cell">
       <div class="label">현재 단계</div>
-      <div class="value" style="font-size:18px; padding-top:4px;">Phase 1</div>
-      <div class="hint">핵심 도메인 구현</div>
+      <div class="value" style="font-size:18px; padding-top:4px;">Phase 2</div>
+      <div class="hint">Kafka · 뉴스 파이프라인</div>
     </div>
   </div>
 
@@ -428,7 +443,7 @@
         <div class="arch-layer">
           <div>
             <div class="layer-name">Spring Boot Core</div>
-            <div class="layer-sub">자산 · 포트폴리오 · 시세 · TACO · Polymarket</div>
+            <div class="layer-sub">자산 · 포트폴리오 · 시세 · 이벤트 · TACO · Polymarket</div>
           </div>
           <span class="badge badge-blue">메인</span>
         </div>
@@ -470,31 +485,43 @@
           <div class="dot dot-teal"></div>
           <div class="name">auth</div>
           <div class="desc">로그인 · JWT · OAuth</div>
-          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1</span>
+          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1 ✓</span>
         </div>
         <div class="domain-row">
           <div class="dot dot-teal"></div>
           <div class="name">holding</div>
           <div class="desc">보유 자산 · 매매 이력</div>
-          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1</span>
+          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1 ✓</span>
         </div>
         <div class="domain-row">
           <div class="dot dot-teal"></div>
           <div class="name">portfolio</div>
           <div class="desc">자산 분류 · 배분 관리</div>
-          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1</span>
+          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1 ✓</span>
         </div>
         <div class="domain-row">
           <div class="dot dot-teal"></div>
           <div class="name">stock</div>
           <div class="desc">시세 · 종목 마스터</div>
-          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1</span>
+          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1 ✓</span>
         </div>
         <div class="domain-row">
           <div class="dot dot-teal"></div>
           <div class="name">post</div>
           <div class="desc">종목 토론방 · 댓글</div>
-          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1</span>
+          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1 ✓</span>
+        </div>
+        <div class="domain-row">
+          <div class="dot dot-teal"></div>
+          <div class="name">event</div>
+          <div class="desc">공시 · FOMC · 배당일</div>
+          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1 ✓</span>
+        </div>
+        <div class="domain-row">
+          <div class="dot dot-blue"></div>
+          <div class="name">news</div>
+          <div class="desc">뉴스 수신 · 알림</div>
+          <span class="badge badge-blue" style="font-size:10px; margin-left:8px;">Phase 2 ←</span>
         </div>
         <div class="domain-row">
           <div class="dot dot-gray"></div>
@@ -504,27 +531,21 @@
         </div>
         <div class="domain-row">
           <div class="dot dot-gray"></div>
-          <div class="name">news</div>
-          <div class="desc">뉴스 수신 · 알림</div>
-          <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 2</span>
-        </div>
-        <div class="domain-row">
-          <div class="dot dot-gray"></div>
           <div class="name">polymarket</div>
           <div class="desc">예측시장 분석</div>
           <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 3</span>
         </div>
         <div class="domain-row">
           <div class="dot dot-gray"></div>
-          <div class="name">trade</div>
-          <div class="desc">자동매매 → Holding 반영</div>
-          <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 5</span>
-        </div>
-        <div class="domain-row">
-          <div class="dot dot-gray"></div>
           <div class="name">notification</div>
           <div class="desc">WebSocket · Push</div>
           <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 4</span>
+        </div>
+        <div class="domain-row">
+          <div class="dot dot-gray"></div>
+          <div class="name">trade</div>
+          <div class="desc">자동매매 → Holding 반영</div>
+          <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 5</span>
         </div>
       </div>
     </div>
@@ -538,20 +559,21 @@
       <div class="card">
         <div style="font-size:12px; font-weight:500; color:var(--text-2); margin-bottom:10px;">공통 패키지</div>
         <div class="pkg-tree">
-          <div><span class="hl">com.marklong</span></div>
+          <div><span class="hl">com.example.marklong</span></div>
           <div>├── <span class="hl">config/</span></div>
           <div class="dim">│   ├── SecurityConfig · RedisConfig</div>
           <div class="dim">│   ├── KafkaConfig · WebSocketConfig</div>
           <div>├── <span class="hl">global/</span></div>
           <div class="dim">│   ├── entity/  ← BaseEntity · SoftDeleteEntity</div>
           <div class="dim">│   ├── exception/  ← ErrorCode · BusinessException</div>
-          <div class="dim">│   └── response/  ← ApiResponse</div>
-          <div>└── <span class="hl">infra/</span></div>
-          <div class="dim">    ├── redis/ · kafka/</div>
-          <div class="dim">    └── client/</div>
-          <div class="dim">        ├── KisApiClient</div>
-          <div class="dim">        ├── PolymarketClient</div>
-          <div class="dim">        └── DjangoAiClient</div>
+          <div class="dim">│   ├── response/  ← ApiResponse</div>
+          <div class="dim">│   └── util/  ← OwnerValidator · DateUtil</div>
+          <div>├── <span class="hl">infra/</span></div>
+          <div class="dim">│   ├── redis/  ← StockPriceRedisRepository</div>
+          <div class="dim">│   ├── kafka/  ← KafkaProducer · KafkaConsumer</div>
+          <div class="dim">│   └── client/  ← KisApiClient · DjangoAiClient</div>
+          <div>└── <span class="hl">security/</span></div>
+          <div class="dim">    ├── auth/  · jwt/  · util/</div>
         </div>
       </div>
       <div class="card">
@@ -565,7 +587,7 @@
           <div>├── <span class="hl">domain/</span></div>
           <div class="dim">│   └── Xxx  <span style="color:#B4B0A8;">(Entity · Enum)</span></div>
           <div>├── <span class="hl">repository/</span></div>
-          <div class="dim">│   └── XxxRepository  <span style="color:#B4B0A8;">(JPA · 필요시 Custom)</span></div>
+          <div class="dim">│   └── XxxRepository  <span style="color:#B4B0A8;">(JPA · QueryDSL Custom)</span></div>
           <div>├── <span class="hl">dto/</span></div>
           <div class="dim">│   ├── XxxRequest · XxxResponse</div>
           <div>└── <span class="hl">scheduler/ · event/</span></div>
@@ -575,9 +597,9 @@
     </div>
   </div>
 
-  <!-- ── Entity Design ── -->
+  <!-- ── Entity Design — Phase 1 ── -->
   <div class="section">
-    <div class="section-title">Entity 설계 — Phase 1</div>
+    <div class="section-title">Entity 설계 — Phase 1 (완료)</div>
 
     <!-- Base entity types -->
     <div class="base-strip">
@@ -587,7 +609,7 @@
           <span style="font-size:11px; color:var(--text-3);">createdAt · updatedAt</span>
         </div>
         <div class="bc-note">삭제 개념이 없는 불변 레코드</div>
-        <div class="bc-users">RefreshToken · StockPrice · HoldingHistory</div>
+        <div class="bc-users">RefreshToken · StockPrice · HoldingHistory · News · NewsContent</div>
       </div>
       <div class="base-card">
         <div class="bc-head">
@@ -595,7 +617,7 @@
           <span style="font-size:11px; color:var(--text-3);">+ deletedAt · delete()</span>
         </div>
         <div class="bc-note">삭제 후에도 데이터 보존 필요</div>
-        <div class="bc-users">User · Holding · Portfolio · PortfolioItem · Post · Comment</div>
+        <div class="bc-users">User · Holding · Portfolio · PortfolioItem · Post · Comment · CalendarEvent</div>
       </div>
     </div>
 
@@ -605,7 +627,7 @@
       <div class="entity-card">
         <div class="entity-card-header">
           <span class="domain-name">auth</span>
-          <span class="badge badge-teal">Phase 1</span>
+          <span class="badge badge-teal">Phase 1 ✓</span>
         </div>
         <table class="etable">
           <thead><tr><th>Entity</th><th>타입</th><th>핵심 필드</th></tr></thead>
@@ -622,13 +644,13 @@
           </tr>
           </tbody>
         </table>
-        <div class="entity-footer">AccessToken stateless · Redis 블랙리스트 무효화</div>
+        <div class="entity-footer">AccessToken stateless · Redis 블랙리스트 무효화 (Phase 2~)</div>
       </div>
 
       <div class="entity-card">
         <div class="entity-card-header">
           <span class="domain-name">stock</span>
-          <span class="badge badge-teal">Phase 1</span>
+          <span class="badge badge-teal">Phase 1 ✓</span>
         </div>
         <table class="etable">
           <thead><tr><th>Entity</th><th>타입</th><th>핵심 필드</th></tr></thead>
@@ -645,13 +667,13 @@
           </tr>
           </tbody>
         </table>
-        <div class="entity-footer">StockPrice → TimescaleDB 하이퍼테이블</div>
+        <div class="entity-footer">StockPrice → TimescaleDB 하이퍼테이블 · currentPrice Redis 캐시 예정</div>
       </div>
 
       <div class="entity-card">
         <div class="entity-card-header">
           <span class="domain-name">holding</span>
-          <span class="badge badge-teal">Phase 1</span>
+          <span class="badge badge-teal">Phase 1 ✓</span>
         </div>
         <table class="etable">
           <thead><tr><th>Entity</th><th>타입</th><th>핵심 필드</th></tr></thead>
@@ -674,7 +696,7 @@
       <div class="entity-card">
         <div class="entity-card-header">
           <span class="domain-name">portfolio</span>
-          <span class="badge badge-teal">Phase 1</span>
+          <span class="badge badge-teal">Phase 1 ✓</span>
         </div>
         <table class="etable">
           <thead><tr><th>Entity</th><th>타입</th><th>핵심 필드</th></tr></thead>
@@ -691,13 +713,13 @@
           </tr>
           </tbody>
         </table>
-        <div class="entity-footer">avgPrice는 Holding 참조 · 삭제 시 배분 전량 해제</div>
+        <div class="entity-footer">totalInvestment · totalValuation · totalProfit 계산 포함 · currentPrice ZERO 하드코딩 (WIP)</div>
       </div>
 
       <div class="entity-card">
         <div class="entity-card-header">
           <span class="domain-name">post</span>
-          <span class="badge badge-teal">Phase 1</span>
+          <span class="badge badge-teal">Phase 1 ✓</span>
         </div>
         <table class="etable">
           <thead><tr><th>Entity</th><th>타입</th><th>핵심 필드</th></tr></thead>
@@ -714,7 +736,56 @@
           </tr>
           </tbody>
         </table>
-        <div class="entity-footer">종목 토론방 · 1단계 댓글 · 대댓글 없음</div>
+        <div class="entity-footer">종목 토론방 · 1단계 댓글 · QueryDSL 동적 검색</div>
+      </div>
+
+      <div class="entity-card">
+        <div class="entity-card-header">
+          <span class="domain-name">event</span>
+          <span class="badge badge-teal">Phase 1 ✓</span>
+        </div>
+        <table class="etable">
+          <thead><tr><th>Entity</th><th>타입</th><th>핵심 필드</th></tr></thead>
+          <tbody>
+          <tr>
+            <td><span style="font-family:'DM Mono',monospace; font-weight:500;">CalendarEvent</span></td>
+            <td><span class="badge badge-teal" style="font-size:10px;">Soft</span></td>
+            <td class="mono">stockCode · eventType · eventSource · eventDate · userId · title</td>
+          </tr>
+          </tbody>
+        </table>
+        <div class="entity-footer">EventSource: USER·ADMIN·SYSTEM · 비회원 공개 이벤트만 조회 · QueryDSL 다조건 검색</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Entity Design — Phase 2 ── -->
+  <div class="section">
+    <div class="section-title">Entity 설계 — Phase 2 (진행중)</div>
+    <div class="col-3">
+
+      <div class="entity-card" style="border-color: var(--blue-border);">
+        <div class="entity-card-header" style="background: var(--blue-bg);">
+          <span class="domain-name">news</span>
+          <span class="badge badge-blue">Phase 2 ←</span>
+        </div>
+        <table class="etable">
+          <thead><tr><th>Entity</th><th>타입</th><th>핵심 필드</th></tr></thead>
+          <tbody>
+          <tr>
+            <td><span style="font-family:'DM Mono',monospace; font-weight:500;">News</span></td>
+            <td><span class="badge badge-gray" style="font-size:10px;">Base</span></td>
+            <td class="mono">sourceId(unique) · provider · title · summary · stockCode · category · sentiment · importance · publishedAt</td>
+          </tr>
+          <tr>
+            <td><span style="font-family:'DM Mono',monospace; font-weight:500;">NewsContent</span></td>
+            <td><span class="badge badge-gray" style="font-size:10px;">Base</span></td>
+            <td class="mono">newsId · content</td>
+          </tr>
+          </tbody>
+        </table>
+        <div class="entity-footer">Domain·Service 완료 · NewsController 스텁 · Kafka Consumer 미구현 (Phase 2 핵심)</div>
       </div>
 
     </div>
@@ -754,6 +825,13 @@
         </div>
       </div>
       <div class="decision-item">
+        <div class="q">권한 검증 위치</div>
+        <div>
+          <div class="a">Service 계층 일괄 처리 · Entity는 비즈니스 로직만</div>
+          <div class="note">update/delete 일관성 유지 · SoftDeleteEntity.delete() 재사용 가능 · Entity 내부 검증 방식 폐기</div>
+        </div>
+      </div>
+      <div class="decision-item">
         <div class="q">Service 구조</div>
         <div>
           <div class="a">단일 @Service 클래스</div>
@@ -761,10 +839,24 @@
         </div>
       </div>
       <div class="decision-item">
+        <div class="q">Spring Security 권한</div>
+        <div>
+          <div class="a">hasAuthority("ROLE_xxx") 사용</div>
+          <div class="note">Role enum이 ROLE_USER / ROLE_ADMIN 형태이므로 hasRole()의 자동 prefix 불사용 · SimpleGrantedAuthority에 그대로 저장</div>
+        </div>
+      </div>
+      <div class="decision-item">
         <div class="q">QueryDSL</div>
         <div>
           <div class="a">동적 쿼리 필요 시 도입</div>
-          <div class="note">현재는 JPA 쿼리 메서드로 충분 · Custom Repository는 그때 추가</div>
+          <div class="note">Post · Event 검색 적용 완료 · JPA 쿼리 메서드로 충분한 경우 Custom Repository 미생성</div>
+        </div>
+      </div>
+      <div class="decision-item">
+        <div class="q">News 본문 분리</div>
+        <div>
+          <div class="a">NewsContent 별도 엔티티 — newsId 참조</div>
+          <div class="note">@Lob 필드 lazy 이슈 회피 · 본문 보존 30일 vs 메타데이터 90일 스케줄러 삭제로 차등 관리</div>
         </div>
       </div>
       <div class="decision-item">
@@ -778,14 +870,14 @@
         <div class="q">Spring ↔ Django</div>
         <div>
           <div class="a">REST API (WebClient) + Kafka 이벤트</div>
-          <div class="note">뉴스·LLM·감성분석은 Django 전담 · Spring은 결과만 소비</div>
+          <div class="note">뉴스·LLM·감성분석은 Django 전담 · Spring은 Kafka Consumer로 결과만 소비</div>
         </div>
       </div>
       <div class="decision-item">
         <div class="q">포트폴리오 응답</div>
         <div>
           <div class="a">DetailResponse = summary + items 구조</div>
-          <div class="note">PortfolioResponse 재사용 · 계산 로직 중복 제거</div>
+          <div class="note">PortfolioResponse 재사용 · totalInvestment/Valuation/Profit/ReturnRate 계산 포함</div>
         </div>
       </div>
     </div>
@@ -796,16 +888,16 @@
     <div class="section-title">개발 단계</div>
     <div class="phase-grid">
       <div class="phase-row">
-        <div class="phase-cell phase-label now">Phase 1 ← 현재</div>
-        <div class="phase-cell now">auth · stock · holding</div>
-        <div class="phase-cell now">포트폴리오 배분 관리</div>
-        <div class="phase-cell now">종목 토론방 · 댓글</div>
+        <div class="phase-cell phase-label done">Phase 1 ✓</div>
+        <div class="phase-cell done">auth · stock · holding</div>
+        <div class="phase-cell done">portfolio · post (QueryDSL)</div>
+        <div class="phase-cell done">event CRUD · Role 기반 접근</div>
       </div>
       <div class="phase-row">
-        <div class="phase-cell phase-label">Phase 2</div>
-        <div class="phase-cell">Django 뉴스 크롤러</div>
-        <div class="phase-cell">Local LLM 요약 API</div>
-        <div class="phase-cell">감성분석 파이프라인</div>
+        <div class="phase-cell phase-label now">Phase 2 ← 현재</div>
+        <div class="phase-cell now">News Kafka Consumer 구현</div>
+        <div class="phase-cell now">Django 크롤러 · Kafka 연동</div>
+        <div class="phase-cell now">LLM 요약 · 감성분석 파이프라인</div>
       </div>
       <div class="phase-row">
         <div class="phase-cell phase-label">Phase 3</div>
@@ -815,9 +907,9 @@
       </div>
       <div class="phase-row">
         <div class="phase-cell phase-label">Phase 4</div>
-        <div class="phase-cell">Kafka 이벤트 버스</div>
-        <div class="phase-cell">WebSocket 알림</div>
-        <div class="phase-cell">실시간 시세 Push</div>
+        <div class="phase-cell">Kafka + WebSocket 알림</div>
+        <div class="phase-cell">실시간 시세 Push · Redis 서킷 브레이커 (Resilience4j)</div>
+        <div class="phase-cell">부하테스트 (k6/Gatling) · 스펙 산정</div>
       </div>
       <div class="phase-row">
         <div class="phase-cell phase-label">Phase 5</div>
@@ -828,20 +920,71 @@
     </div>
   </div>
 
+  <!-- ── WIP / 미구현 ── -->
+  <div class="section">
+    <div class="section-title">WIP · 미구현 항목</div>
+    <div class="card" style="padding: 8px 24px;">
+      <div class="decision-item">
+        <div class="q">StockPriceRedisRepository</div>
+        <div>
+          <div class="a">현재가 조회 미구현</div>
+          <div class="note">Redis 캐시 + TimescaleDB 폴백 구조만 잡혀 있음 · KIS API 연동 후 채울 예정</div>
+        </div>
+      </div>
+      <div class="decision-item">
+        <div class="q">HoldingService.getHolding()</div>
+        <div>
+          <div class="a">현재가 · 미실현손익 미연산</div>
+          <div class="note">외부 API / Redis 연동 후 채울 예정</div>
+        </div>
+      </div>
+      <div class="decision-item">
+        <div class="q">PortfolioService currentPrice</div>
+        <div>
+          <div class="a">BigDecimal.ZERO 하드코딩 중</div>
+          <div class="note">Redis 시세 연동 완료 후 교체 예정</div>
+        </div>
+      </div>
+      <div class="decision-item">
+        <div class="q">JwtAuthenticationFilter</div>
+        <div>
+          <div class="a">Redis blacklist 체크 주석 처리 중</div>
+          <div class="note">Redis RTR + blacklist 도입 시 활성화</div>
+        </div>
+      </div>
+      <div class="decision-item">
+        <div class="q">NewsController</div>
+        <div>
+          <div class="a">빈 스텁 상태</div>
+          <div class="note">NewsService 완성 · Kafka Consumer 구현 후 엔드포인트 연결 예정 (Phase 2)</div>
+        </div>
+      </div>
+      <div class="decision-item">
+        <div class="q">HoldingHistory 매도 오차</div>
+        <div>
+          <div class="a">포트폴리오 배분 수량과 오차 발생 가능</div>
+          <div class="note">TODO 주석 참고 · 자동 배분 해제 로직 미구현</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Tech Stack ── -->
   <div class="section" style="margin-bottom:0;">
     <div class="section-title">기술 스택</div>
     <div class="card">
       <div style="display:flex; flex-direction:column; gap:14px;">
         <div>
-          <div style="font-size:11px; color:var(--text-3); font-family:'DM Mono',monospace; margin-bottom:8px;">Spring Boot (Java 21)</div>
+          <div style="font-size:11px; color:var(--text-3); font-family:'DM Mono',monospace; margin-bottom:8px;">Spring Boot (Java 17)</div>
           <div class="stack-row">
             <span class="stack-chip chip-blue">Spring Boot 3</span>
-            <span class="stack-chip chip-blue">Spring Security</span>
+            <span class="stack-chip chip-blue">Spring Security 7</span>
             <span class="stack-chip chip-blue">Spring Data JPA</span>
-            <span class="stack-chip chip-blue">QueryDSL</span>
+            <span class="stack-chip chip-blue">QueryDSL 5</span>
             <span class="stack-chip chip-blue">WebClient</span>
             <span class="stack-chip chip-blue">WebSocket</span>
+            <span class="stack-chip chip-blue">jjwt 0.12.x</span>
+            <span class="stack-chip chip-blue">springdoc 2.x</span>
           </div>
         </div>
         <hr class="divider" style="margin:0;">
@@ -864,6 +1007,7 @@
             <span class="stack-chip chip-gray">PostgreSQL</span>
             <span class="stack-chip chip-gray">TimescaleDB</span>
             <span class="stack-chip chip-gray">Nginx</span>
+            <span class="stack-chip chip-gray">Resilience4j</span>
           </div>
         </div>
       </div>

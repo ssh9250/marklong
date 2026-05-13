@@ -67,7 +67,7 @@ public class EventService {
     public void update(Long userId, Role role, Long eventId, EventUpdateRequest request) {
         CalendarEvent event = getEventOrThrow(eventId);
 
-        if (role == Role.ROLE_ADMIN) {
+        if (role == Role.ADMIN) {
             event.update(request.stockCode(), request.eventType(), request.eventDate(), request.title(), request.description());
         } else {
             if (event.getEventSource() != EventSource.USER || !event.getUserId().equals(userId)) {
@@ -80,7 +80,7 @@ public class EventService {
     public void delete(Long userId, Role role, Long eventId) {
         CalendarEvent event = getEventOrThrow(eventId);
 
-        if (role == Role.ROLE_ADMIN) {
+        if (role == Role.ADMIN) {
             event.delete();
         } else {
             if (event.getEventSource() != EventSource.USER || !event.getUserId().equals(userId)) {

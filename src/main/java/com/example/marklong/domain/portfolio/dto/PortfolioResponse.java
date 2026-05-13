@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class PortfolioResponse {
+    private Long id;
     private String name;
     private String description;
     private Currency currency;
@@ -32,6 +33,7 @@ public class PortfolioResponse {
                                     .multiply(BigDecimal.valueOf(100));
 
         return PortfolioResponse.builder()
+                .id(portfolio.getId())
                 .name(portfolio.getName())
                 .description(portfolio.getDescription())
                 .currency(portfolio.getCurrency())

@@ -28,6 +28,7 @@ public class EventQueryRepository {
                         calendarEvent.id, calendarEvent.stockCode, calendarEvent.eventType, calendarEvent.eventSource, calendarEvent.eventDate, calendarEvent.title, calendarEvent.description))
                 .from(calendarEvent)
                 .where(
+                        calendarEvent.deletedAt.isNull(),
                         stockCodeEq(condition.stockCode()),
                         typeIn(condition.eventType()),
                         sourceIn(condition.eventSource(), userId),
@@ -84,7 +85,7 @@ public class EventQueryRepository {
     }
 
     private BooleanExpression eventDateTo(LocalDateTime to) {
-        return to != null ? calendarEvent.eventDate.between(to, LocalDateTime.now()) : null;
+        return to != null ? calendarEvent.eventDate.loe(to) : null;
     }
     // eventsource == user and id != userId -->
 }

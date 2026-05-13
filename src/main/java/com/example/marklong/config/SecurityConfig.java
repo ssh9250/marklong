@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/posts/me").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/*").permitAll()
+                        .requestMatchers("/api/events/admin").hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/events").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events/*").permitAll()
                         .requestMatchers(
@@ -65,7 +66,7 @@ public class SecurityConfig {
                                 "/api/test/**",
                                 "/init/**"
                         ).permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
