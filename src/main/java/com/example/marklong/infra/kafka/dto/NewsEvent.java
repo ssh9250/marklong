@@ -5,12 +5,12 @@ import com.example.marklong.domain.news.domain.Importance;
 import com.example.marklong.domain.news.domain.Sentiment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Service;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Service
+@Setter
 @NoArgsConstructor
 public class NewsEvent {
     private String sourceId;
@@ -18,9 +18,10 @@ public class NewsEvent {
     private String author;
     private String title;
     private String summary;       // Ollama가 요약한 내용
+    private String originalUrl;
     private String stockCode;
     private Category category;
-    private Sentiment sentiment;     // "POSITIVE" / "NEGATIVE" / "NEUTRAL"
+    private Sentiment sentiment;  // "POSITIVE" / "NEGATIVE" / "NEUTRAL"
     private Importance importance;
     private String content;       // 본문 (NewsContent로 분리 저장)
     private LocalDateTime publishedAt;

@@ -5,6 +5,7 @@ import com.example.marklong.domain.news.domain.NewsContent;
 import com.example.marklong.domain.news.dto.NewsContentResponse;
 import com.example.marklong.domain.news.dto.NewsDetailResponse;
 import com.example.marklong.domain.news.dto.NewsListResponse;
+import com.example.marklong.domain.news.dto.NewsSearchCondition;
 import com.example.marklong.domain.news.repository.NewsContentRepository;
 import com.example.marklong.domain.news.repository.NewsQueryRepository;
 import com.example.marklong.domain.news.repository.NewsRepository;
@@ -43,7 +44,7 @@ public class NewsService {
                 .author(newsEvent.getAuthor())
                 .title(newsEvent.getTitle())
                 .summary(newsEvent.getSummary())
-                .originalUrl(newsEvent.getAuthor())
+                .originalUrl(newsEvent.getOriginalUrl())
                 .stockCode(newsEvent.getStockCode())
                 .category(newsEvent.getCategory())
                 .sentiment(newsEvent.getSentiment())
@@ -66,6 +67,11 @@ public class NewsService {
     @Transactional(readOnly = true)
     public List<NewsListResponse> getNewsList() {
         return newsQueryRepository.get();
+    }
+
+    @Transactional(readOnly = true)
+    public List<NewsListResponse> searchNewsList(NewsSearchCondition condition) {
+        return newsQueryRepository.searchNews(condition);
     }
 
     @Transactional(readOnly = true)
