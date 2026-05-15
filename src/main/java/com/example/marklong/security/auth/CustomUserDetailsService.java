@@ -1,7 +1,7 @@
 package com.example.marklong.security.auth;
 
-import com.example.marklong.domain.auth.domain.User;
-import com.example.marklong.domain.auth.repository.UserRepository;
+import com.example.marklong.domain.user.domain.User;
+import com.example.marklong.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -4,8 +4,21 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+.env
+.env.local
 
-CLAUDE.md
+
+### Test Coverage ###
+coverage/
+*.jacoco
+
+### Database ###
+postgres-data/
+redis-data/
+
+### Logs ###
+logs/
+*.log
 
 ### STS ###
 .apt_generated

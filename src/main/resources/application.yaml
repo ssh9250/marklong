@@ -2,6 +2,28 @@ spring:
   application:
     name: marklong
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/marklong
+    username: ${DB_USERNAME:marklong}
+    password: ${DB_PASSWORD:marklong1234}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000
+    database: 0
+
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -17,8 +39,50 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 100
+        slowCallDurationThreshold: 2s
+        recordExceptions:
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+  retry:
+    instances:
+      default:
+        maxAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - java.net.SocketTimeoutException
+          - java.io.IOException
+  ratelimiter:
+    instances:
+      default:
+        registerHealthIndicator: false
+        limitRefreshPeriod: 1m
+        limitForPeriod: 100
+        timeoutDuration: 5s
+  timelimiter:
+    instances:
+      default:
+        cancelRunningFuture: false
+        timeoutDuration: 2s
+
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
     enabled: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration-ms: 1800000
+  refresh-expiration-ms: 1209600000

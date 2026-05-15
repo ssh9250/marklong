@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -17,7 +18,7 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
-    // TODO: Redis 도입 시 StringRedisTemplate 주입 후 blacklist 체크 활성화
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     protected void doFilterInternal(
@@ -32,12 +33,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // TODO: Redis 도입 시 아래 주석 해제
-        // String blacklistKey = "blacklist:" + token;
-        // if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(blacklistKey))) {
-        //     filterChain.doFilter(request, response);
-        //     return;
-        // }
+         String blacklistKey = "blacklist:" + token;
+        if (stringRedisTemplate.hasKey(blacklistKey)) {
+             filterChain.doFilter(request, response);
+             return;
+         }
 
         if (jwtTokenProvider.validateToken(token)) {
             log.debug("JWT validation passed");

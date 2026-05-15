@@ -1,7 +1,7 @@
 package com.example.marklong.security.auth;
 
-import com.example.marklong.domain.auth.domain.Role;
-import com.example.marklong.domain.auth.domain.User;
+import com.example.marklong.domain.user.domain.Role;
+import com.example.marklong.domain.user.domain.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

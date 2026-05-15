@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.example.marklong.domain.auth.domain.QUser.user;
+import static com.example.marklong.domain.user.domain.QUser.user;
 import static com.example.marklong.domain.post.domain.QPost.post;
 import static org.springframework.util.StringUtils.hasText;
 

@@ -1,4 +1,4 @@
-package com.example.marklong.domain.auth.domain;
+package com.example.marklong.domain.user.domain;
 
 import com.example.marklong.global.entity.SoftDeleteEntity;
 import jakarta.persistence.*;
@@ -6,8 +6,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.SQLDelete;
-
 
 @Entity
 @Table(name = "users")

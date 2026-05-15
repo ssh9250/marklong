@@ -1,6 +1,6 @@
 package com.example.marklong.domain.event.service;
 
-import com.example.marklong.domain.auth.domain.Role;
+import com.example.marklong.domain.user.domain.Role;
 import com.example.marklong.domain.event.domain.CalendarEvent;
 import com.example.marklong.domain.event.domain.EventSource;
 import com.example.marklong.domain.event.dto.EventCreateRequest;

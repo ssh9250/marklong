@@ -1,18 +1,19 @@
 package com.example.marklong.domain.auth.service;
 
-import com.example.marklong.domain.auth.domain.OAuthProvider;
 import com.example.marklong.domain.auth.domain.RefreshToken;
-import com.example.marklong.domain.auth.domain.Role;
-import com.example.marklong.domain.auth.domain.User;
 import com.example.marklong.domain.auth.dto.LoginRequest;
 import com.example.marklong.domain.auth.dto.SignupRequest;
 import com.example.marklong.domain.auth.dto.TokenResponse;
 import com.example.marklong.domain.auth.repository.RefreshTokenRepository;
-import com.example.marklong.domain.auth.repository.UserRepository;
+import com.example.marklong.domain.user.domain.OAuthProvider;
+import com.example.marklong.domain.user.domain.Role;
+import com.example.marklong.domain.user.domain.User;
+import com.example.marklong.domain.user.repository.UserRepository;
 import com.example.marklong.global.exception.BusinessException;
 import com.example.marklong.global.exception.ErrorCode;
 import com.example.marklong.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +23,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class AuthService {
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtProvider;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final RefreshTokenService refreshTokenService;
 
     public void signup(SignupRequest request) {
+        // 비활성 계정 닉네임은 중복 허용
         if (userRepository.existsByEmailAndDeletedAtIsNull(request.getEmail())) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATED);
         }
@@ -41,27 +44,13 @@ public class AuthService {
     }
 
     public TokenResponse login(LoginRequest request) {
-        User user = userRepository.findByEmailAndDeletedAtIsNull(request.getEmail())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
-        }
+        User user = authenticate(request);
 
         String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
         String refreshToken = jwtProvider.createRefreshToken();
 
-        // 기존 refresh token이 있으면 RTR 방식으로 교체, 없으면 신규 발급
-        // 현재는 userId 당 단일 세션 정책 (추후 멀티 디바이스 지원 시 변경)
-        refreshTokenRepository.findByUserId(user.getId())
-                .ifPresentOrElse(
-                        existing -> existing.rotate(refreshToken, jwtProvider.getRefreshExpiry()),
-                        () -> refreshTokenRepository.save(RefreshToken.builder()
-                                .userId(user.getId())
-                                .token(refreshToken)
-                                .expiresAt(jwtProvider.getRefreshExpiry())
-                                .build())
-                );
+        // refresh 저장
+        refreshTokenService.save(user.getId(), refreshToken);
 
         return TokenResponse.of(accessToken, refreshToken);
     }
@@ -71,7 +60,7 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
 
         if (token.isExpired()) {
-            // 만료된 토큰은 DB에서 제거 후 재인증 요구
+            // 만료되었으면 db에서도 삭제
             refreshTokenRepository.delete(token);
             throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
         }
@@ -85,7 +74,7 @@ public class AuthService {
 
         // RTR: 기존 토큰을 새 토큰으로 교체
         token.rotate(newRefreshToken, jwtProvider.getRefreshExpiry());
-        // TODO: Redis 도입 시 → 이전 refreshToken을 Redis blacklist에 추가 (짧은 TTL)
+        // 이전 refreshToken을 Redis blacklist에 추가 (짧은 TTL) ? 그냥 redis, db에서 지우고 끝 아닌가?
 
         return TokenResponse.of(newAccessToken, newRefreshToken);
     }
@@ -98,5 +87,15 @@ public class AuthService {
         refreshTokenRepository.deleteByUserId(userId);
         // TODO: Redis 도입 시 → accessToken을 blacklist:{accessToken} 키로 Redis에 저장
         //       TTL = jwtProvider.getRemainingExpiry(accessToken)
+    }
+
+    private User authenticate(LoginRequest request) {
+        User user = userRepository.findByEmailAndDeletedAtIsNull(request.getEmail())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+        return user;
     }
 }

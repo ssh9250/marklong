@@ -1,6 +1,6 @@
 package com.example.marklong.security.jwt;
 
-import com.example.marklong.domain.auth.domain.Role;
+import com.example.marklong.domain.user.domain.Role;
 import com.example.marklong.security.auth.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -104,6 +106,21 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        // todo: 트래픽 증가 시 로직 바꾸기
+        // 현재는 필터에서 매 요청 시 DB 조회를 통해 유저 정보 전체를 security context에 올리고 있지만,
+        // 트래픽이 증가하면 getAuthentication()을 토큰 클레임 기반으로 변경하거나,
+        // loadUserById() 결과를 Redis로 캐싱하는 방향으로 개선 필요
+//        Long userId = Long.parseLong(claims.getSubject());
+//        String role = claims.get("role", String.class);
+//        SimpleGrantedAuthority simpleGrantedAuthority = new SimpleGrantedAuthority("ROLE_" + role);
+//        return new UsernamePasswordAuthenticationToken(userId, null, List.of(simpleGrantedAuthority));
+
         Long userId = getUserId(token);
         UserDetails userDetails = userDetailsService.loadUserById(userId);
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());

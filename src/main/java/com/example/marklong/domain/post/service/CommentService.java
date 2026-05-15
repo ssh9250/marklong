@@ -1,6 +1,6 @@
 package com.example.marklong.domain.post.service;
 
-import com.example.marklong.domain.auth.repository.UserRepository;
+import com.example.marklong.domain.user.repository.UserRepository;
 import com.example.marklong.domain.post.domain.Comment;
 import com.example.marklong.domain.post.dto.CommentCreateRequest;
 import com.example.marklong.domain.post.dto.CommentResponse;
