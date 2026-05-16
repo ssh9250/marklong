@@ -64,8 +64,22 @@ public class JwtTokenProvider {
         return UUID.randomUUID().toString();
     }
 
-    public LocalDateTime getRefreshExpiry() {
-        return LocalDateTime.now().plusSeconds(refreshExpirationMs / 1000);
+    public long getExpiration(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            Date expiration = claims.getExpiration();
+            Date now = new Date();
+
+            long diff =  expiration.getTime() - now.getTime();
+            return diff > 0 ? diff : 0;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     public String resolveToken(HttpServletRequest request) {

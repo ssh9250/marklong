@@ -1,10 +1,8 @@
 package com.example.marklong.domain.auth.service;
 
-import com.example.marklong.domain.auth.domain.RefreshToken;
 import com.example.marklong.domain.auth.dto.LoginRequest;
 import com.example.marklong.domain.auth.dto.SignupRequest;
 import com.example.marklong.domain.auth.dto.TokenResponse;
-import com.example.marklong.domain.auth.repository.RefreshTokenRepository;
 import com.example.marklong.domain.user.domain.OAuthProvider;
 import com.example.marklong.domain.user.domain.Role;
 import com.example.marklong.domain.user.domain.User;
@@ -18,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.TimeUnit;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -25,8 +25,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtProvider;
-    private final StringRedisTemplate stringRedisTemplate;
     private final RefreshTokenService refreshTokenService;
+    private final StringRedisTemplate stringRedisTemplate;
 
     public void signup(SignupRequest request) {
         // 비활성 계정 닉네임은 중복 허용
@@ -50,43 +50,37 @@ public class AuthService {
         String refreshToken = jwtProvider.createRefreshToken();
 
         // refresh 저장
-        refreshTokenService.save(user.getId(), refreshToken);
+        refreshTokenService.saveOrUpdate(user.getId(), refreshToken);
 
         return TokenResponse.of(accessToken, refreshToken);
     }
 
     public TokenResponse reissue(String refreshToken) {
-        RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
+        Long userId = refreshTokenService.extractUserId(refreshToken);
+        refreshTokenService.validate(userId, refreshToken);
 
-        if (token.isExpired()) {
-            // 만료되었으면 db에서도 삭제
-            refreshTokenRepository.delete(token);
-            throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
-        }
+        Role role = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND)).getRole();
 
-        // soft delete된 유저는 재발급 불가
-        User user = userRepository.findUserByIdAndDeletedAtIsNull(token.getUserId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        String newAccessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
+        String newAccessToken = jwtProvider.createAccessToken(userId, role);
         String newRefreshToken = jwtProvider.createRefreshToken();
 
-        // RTR: 기존 토큰을 새 토큰으로 교체
-        token.rotate(newRefreshToken, jwtProvider.getRefreshExpiry());
-        // 이전 refreshToken을 Redis blacklist에 추가 (짧은 TTL) ? 그냥 redis, db에서 지우고 끝 아닌가?
+        refreshTokenService.saveOrUpdate(userId, newRefreshToken);
 
         return TokenResponse.of(newAccessToken, newRefreshToken);
     }
 
-    /**
-     * @param accessToken 로그아웃 시 무효화할 access token
-     *                    (추후 Redis blacklist에 남은 만료 시간만큼 등록 예정)
-     */
     public void logout(Long userId, String accessToken) {
-        refreshTokenRepository.deleteByUserId(userId);
-        // TODO: Redis 도입 시 → accessToken을 blacklist:{accessToken} 키로 Redis에 저장
-        //       TTL = jwtProvider.getRemainingExpiry(accessToken)
+        // access,
+        refreshTokenService.delete(userId);
+
+        long remainingTime = jwtProvider.getExpiration(accessToken);
+
+        stringRedisTemplate.opsForValue().set(
+                "blacklist:" + accessToken,
+                "logged_out",
+                remainingTime, TimeUnit.MILLISECONDS
+        );
     }
 
     private User authenticate(LoginRequest request) {
