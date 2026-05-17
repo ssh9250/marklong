@@ -59,7 +59,7 @@ public class AuthService {
         Long userId = refreshTokenService.extractUserId(refreshToken);
         refreshTokenService.validate(userId, refreshToken);
 
-        Role role = userRepository.findById(userId)
+        Role role = userRepository.findUserByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND)).getRole();
 
         String newAccessToken = jwtProvider.createAccessToken(userId, role);
