@@ -1,5 +1,8 @@
 package com.example.marklong.config;
 
+import com.example.marklong.domain.auth.oauth.CustomOAuth2UserService;
+import com.example.marklong.domain.auth.oauth.OAuth2AuthenticationFailureHandler;
+import com.example.marklong.domain.auth.oauth.OAuth2AuthenticationSuccessHandler;
 import com.example.marklong.global.exception.ErrorCode;
 import com.example.marklong.security.auth.CustomUserDetailsService;
 import com.example.marklong.security.jwt.JwtAuthenticationFilter;
@@ -33,6 +36,9 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtExceptionFilter jwtExceptionFilter;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -40,6 +46,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(u -> u.userService(customOAuth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
+                )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((request, response, authException) ->
                                 SecurityResponseUtil.sendErrorResponse(response, ErrorCode.UNAUTHORIZED)

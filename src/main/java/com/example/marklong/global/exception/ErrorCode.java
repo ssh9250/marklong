@@ -17,6 +17,10 @@ public enum ErrorCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH_007", "인증이 필요합니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_008", "접근 권한이 없습니다."),
 
+    // OAuth
+    OAUTH_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "OAUTH_001", "연결된 이메일을 찾을 수 없습니다."),
+    OAUTH_USER_LOGIN_DENIED(HttpStatus.BAD_REQUEST, "OAUTH_002", "잘못된 접근입니다."),
+
     // hold
     HOLDING_NOT_FOUND(HttpStatus.NOT_FOUND, "HOLD_001", "보유 종목을 찾을 수 없습니다."),
     INSUFFICIENT_UNALLOCATED_QUANTITY(HttpStatus.BAD_REQUEST, "HOLD_002", "미배분 수량이 부족합니다."),
