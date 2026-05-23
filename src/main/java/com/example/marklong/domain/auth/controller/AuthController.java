@@ -61,25 +61,4 @@ public class AuthController {
         authService.logout(userDetails.getUserId(), accessToken);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
-
-    // ── OAuth2 (미구현) ─────────────────────────────────────
-
-    @GetMapping("/oauth2/{provider}")
-    @Operation(summary = "OAuth2 로그인 요청 (미구현)", description = "provider: kakao | google | naver")
-    public ResponseEntity<ApiResponse<Void>> oauthLogin(
-            @PathVariable String provider
-    ) {
-        // TODO: OAuth2 로그인 구현
-        throw new UnsupportedOperationException("OAuth2 로그인은 아직 구현되지 않았습니다.");
-    }
-
-    @GetMapping("/oauth2/callback/{provider}")
-    @Operation(summary = "OAuth2 콜백 처리 (미구현)")
-    public ResponseEntity<ApiResponse<TokenResponse>> oauthCallback(
-            @PathVariable String provider,
-            @RequestParam String code
-    ) {
-        // TODO: OAuth2 콜백 처리 및 토큰 발급 구현
-        throw new UnsupportedOperationException("OAuth2 콜백은 아직 구현되지 않았습니다.");
-    }
 }

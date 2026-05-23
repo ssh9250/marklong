@@ -45,7 +45,7 @@ spring:
               google:
                 client-id: ${GOOGLE_CLIENT_ID}
                 client-secret: ${GOOGLE_CLIENT_SECRET}
-                redirect-uri: "{baseUrl}/login/oauth2/code/google"
+                redirect-uri: "{baseUrl}/api/login/oauth2/code/google"
                 scope:
                   - email
                   - profile
@@ -53,7 +53,7 @@ spring:
               kakao:
                 client-id: ${KAKAO_CLIENT_ID}
                 client-secret: ${KAKAO_CLIENT_SECRET}
-                redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
+                redirect-uri: "{baseUrl}/api/login/oauth2/code/kakao"
                 client-authentication-method: client_secret_post
                 authorization-grant-type: authorization_code
                 scope:
@@ -63,7 +63,7 @@ spring:
               naver:
                 client-id: ${NAVER_CLIENT_ID}
                 client-secret: ${NAVER_CLIENT_SECRET}
-                redirect-uri: "{baseUrl}/login/oauth2/code/naver"
+                redirect-uri: "{baseUrl}/api/login/oauth2/code/naver"
                 client-authentication-method: client_secret_post
                 authorization-grant-type: authorization_code
                 scope:
