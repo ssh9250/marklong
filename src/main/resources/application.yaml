@@ -69,6 +69,7 @@ spring:
                 scope:
                   - name
                   - email
+                  - nickname
 
             provider:
               kakao:

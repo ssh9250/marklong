@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
-    private final RefreshTokenService refreshTokenService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -36,8 +35,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             throw new BusinessException(ErrorCode.OAUTH_EMAIL_NOT_FOUND);
         }
 
-        User user = userRepository.findByEmailAndDeletedAtIsNull(email)
-                .orElseGet(() -> registerNewUser(userInfo));
+        User user = userRepository.findByOauthIdAndProviderAndDeletedAtIsNull(userInfo.getProviderId(), provider)
+                .orElseGet(() -> userRepository.findByEmailAndDeletedAtIsNull(email)
+                        .orElseGet(() -> registerNewUser(userInfo)));
 
         return new CustomOauth2User(user);
     }
@@ -49,6 +49,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .role(Role.USER)
                 .provider(userInfo.getProvider())
                 .password(null)
+                .oauthId(userInfo.getProviderId())
                 .build();
         userRepository.save(user);
         return user;
