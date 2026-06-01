@@ -132,6 +132,10 @@ jwt:
   access-expiration-ms: 1800000
   refresh-expiration-ms: 1209600000
 
+kis:
+  base-url: ${KIS_BASE_URL}
+  app-key: ${KIS_KEY}
+  app-secret: ${KIS_SECRET}
 
 oauth2:
   redirect-uri: http://localhost:3000/oauth/callback

@@ -41,6 +41,10 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_003", "존재하지 않는 댓글입니다."),
     COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "POST_004", "댓글에 대한 권한이 없습니다."),
 
+    // kis
+    KIS_AUTH_FAILED(HttpStatus.BAD_REQUEST, "KIS_000", "KIS Api 요청에 실패하였습니다."),
+
+
     // global
 
     DATA_NOT_FOUND(HttpStatus.NOT_FOUND, "DATA_004", "해당 데이터를 찾을 수 없습니다."),

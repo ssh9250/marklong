@@ -398,7 +398,7 @@
       </div>
     </div>
     <div class="header-right">
-      <span class="badge badge-teal">Phase 1 완료 · Phase 2 진행중</span>
+      <span class="badge badge-teal">Phase 2 완료 · Phase 3 진행중</span>
       <span style="font-size:11px; color:var(--text-3); font-family:'DM Mono',monospace;">Java 17 · Spring Boot 3</span>
     </div>
   </header>
@@ -411,9 +411,9 @@
       <div class="hint">event 추가 (Phase 1 선완)</div>
     </div>
     <div class="stat-cell">
-      <div class="label">Phase 1 구현 완료</div>
-      <div class="value">6</div>
-      <div class="hint">auth · stock · holding · portfolio · post · event</div>
+      <div class="label">Phase 1·2 구현 완료</div>
+      <div class="value">7</div>
+      <div class="hint">auth · stock · holding · portfolio · post · event · news</div>
     </div>
     <div class="stat-cell">
       <div class="label">백엔드</div>
@@ -422,8 +422,8 @@
     </div>
     <div class="stat-cell">
       <div class="label">현재 단계</div>
-      <div class="value" style="font-size:18px; padding-top:4px;">Phase 2</div>
-      <div class="hint">Kafka · 뉴스 파이프라인</div>
+      <div class="value" style="font-size:18px; padding-top:4px;">Phase 3</div>
+      <div class="hint">알림 · 안정화 · 부하테스트</div>
     </div>
   </div>
 
@@ -518,27 +518,27 @@
           <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 1 ✓</span>
         </div>
         <div class="domain-row">
-          <div class="dot dot-blue"></div>
+          <div class="dot dot-teal"></div>
           <div class="name">news</div>
-          <div class="desc">뉴스 수신 · 알림</div>
-          <span class="badge badge-blue" style="font-size:10px; margin-left:8px;">Phase 2 ←</span>
+          <div class="desc">뉴스 수신 · Kafka · 스케줄러</div>
+          <span class="badge badge-teal" style="font-size:10px; margin-left:8px;">Phase 2 ✓</span>
+        </div>
+        <div class="domain-row">
+          <div class="dot dot-blue"></div>
+          <div class="name">notification</div>
+          <div class="desc">WebSocket · Push</div>
+          <span class="badge badge-blue" style="font-size:10px; margin-left:8px;">Phase 3 ←</span>
         </div>
         <div class="domain-row">
           <div class="dot dot-gray"></div>
           <div class="name">taco</div>
           <div class="desc">트럼프 관세 지수</div>
-          <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 3</span>
+          <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 4</span>
         </div>
         <div class="domain-row">
           <div class="dot dot-gray"></div>
           <div class="name">polymarket</div>
           <div class="desc">예측시장 분석</div>
-          <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 3</span>
-        </div>
-        <div class="domain-row">
-          <div class="dot dot-gray"></div>
-          <div class="name">notification</div>
-          <div class="desc">WebSocket · Push</div>
           <span class="badge badge-gray" style="font-size:10px; margin-left:8px;">Phase 4</span>
         </div>
         <div class="domain-row">
@@ -561,8 +561,8 @@
         <div class="pkg-tree">
           <div><span class="hl">com.example.marklong</span></div>
           <div>├── <span class="hl">config/</span></div>
-          <div class="dim">│   ├── SecurityConfig · RedisConfig</div>
-          <div class="dim">│   ├── KafkaConfig · WebSocketConfig</div>
+          <div class="dim">│   ├── SecurityConfig · RedisConfig · QuerydslConfig</div>
+          <div class="dim">│   ├── KafkaConfig · WebSocketConfig · SwaggerConfig · SchedulingConfig</div>
           <div>├── <span class="hl">global/</span></div>
           <div class="dim">│   ├── entity/  ← BaseEntity · SoftDeleteEntity</div>
           <div class="dim">│   ├── exception/  ← ErrorCode · BusinessException</div>
@@ -571,7 +571,7 @@
           <div>├── <span class="hl">infra/</span></div>
           <div class="dim">│   ├── redis/  ← StockPriceRedisRepository</div>
           <div class="dim">│   ├── kafka/  ← KafkaProducer · KafkaConsumer</div>
-          <div class="dim">│   └── client/  ← KisApiClient · DjangoAiClient</div>
+          <div class="dim">│   └── client/  ← KisApiClient · DjangoAiClient · PolymmarketClient</div>
           <div>└── <span class="hl">security/</span></div>
           <div class="dim">    ├── auth/  · jwt/  · util/</div>
         </div>
@@ -590,8 +590,8 @@
           <div class="dim">│   └── XxxRepository  <span style="color:#B4B0A8;">(JPA · QueryDSL Custom)</span></div>
           <div>├── <span class="hl">dto/</span></div>
           <div class="dim">│   ├── XxxRequest · XxxResponse</div>
-          <div>└── <span class="hl">scheduler/ · event/</span></div>
-          <div class="dim">    <span style="color:#B4B0A8;">필요한 도메인만 추가</span></div>
+          <div>└── <span class="hl">scheduler/ · event/ · oauth/</span></div>
+          <div class="dim">    <span style="color:#B4B0A8;">필요한 도메인만 추가 (news: scheduler, auth: oauth)</span></div>
         </div>
       </div>
     </div>
@@ -635,7 +635,7 @@
           <tr>
             <td><span style="font-family:'DM Mono',monospace; font-weight:500;">User</span></td>
             <td><span class="badge badge-teal" style="font-size:10px;">Soft</span></td>
-            <td class="mono">email · password · role · provider</td>
+            <td class="mono">email · password(nullable) · nickname · role · provider · oauthId</td>
           </tr>
           <tr>
             <td><span style="font-family:'DM Mono',monospace; font-weight:500;">RefreshToken</span></td>
@@ -644,7 +644,7 @@
           </tr>
           </tbody>
         </table>
-        <div class="entity-footer">AccessToken stateless · Redis 블랙리스트 무효화 (Phase 2~)</div>
+        <div class="entity-footer">JWT RTR + Redis blacklist 완료 · OAuth2 (Google·Kakao·Naver) 소셜 로그인 · 만료 토큰 스케줄 삭제(매일 03:00)</div>
       </div>
 
       <div class="entity-card">
@@ -762,13 +762,13 @@
 
   <!-- ── Entity Design — Phase 2 ── -->
   <div class="section">
-    <div class="section-title">Entity 설계 — Phase 2 (진행중)</div>
+    <div class="section-title">Entity 설계 — Phase 2 (완료)</div>
     <div class="col-3">
 
-      <div class="entity-card" style="border-color: var(--blue-border);">
-        <div class="entity-card-header" style="background: var(--blue-bg);">
+      <div class="entity-card" style="border-color: var(--teal-border);">
+        <div class="entity-card-header" style="background: var(--teal-bg);">
           <span class="domain-name">news</span>
-          <span class="badge badge-blue">Phase 2 ←</span>
+          <span class="badge badge-teal">Phase 2 ✓</span>
         </div>
         <table class="etable">
           <thead><tr><th>Entity</th><th>타입</th><th>핵심 필드</th></tr></thead>
@@ -785,7 +785,7 @@
           </tr>
           </tbody>
         </table>
-        <div class="entity-footer">Domain·Service 완료 · NewsController 스텁 · Kafka Consumer 미구현 (Phase 2 핵심)</div>
+        <div class="entity-footer">Controller·Service·KafkaConsumer·Scheduler 전체 완료 · 본문 30일·메타 90일 스케줄 삭제(매일 03:00/03:30) · DLT 미구현(TODO)</div>
       </div>
 
     </div>
@@ -894,22 +894,22 @@
         <div class="phase-cell done">event CRUD · Role 기반 접근</div>
       </div>
       <div class="phase-row">
-        <div class="phase-cell phase-label now">Phase 2 ← 현재</div>
-        <div class="phase-cell now">News Kafka Consumer 구현</div>
-        <div class="phase-cell now">Django 크롤러 · Kafka 연동</div>
-        <div class="phase-cell now">LLM 요약 · 감성분석 파이프라인</div>
+        <div class="phase-cell phase-label done">Phase 2 ✓</div>
+        <div class="phase-cell done">News Kafka Consumer 구현</div>
+        <div class="phase-cell done">NewsController · NewsService 완료</div>
+        <div class="phase-cell done">뉴스 스케줄러 · OAuth2 소셜 로그인</div>
       </div>
       <div class="phase-row">
-        <div class="phase-cell phase-label">Phase 3</div>
-        <div class="phase-cell">TACO Index 산출</div>
-        <div class="phase-cell">Polymarket 연동</div>
-        <div class="phase-cell">데이터 파이프라인</div>
+        <div class="phase-cell phase-label now">Phase 3 ← 현재</div>
+        <div class="phase-cell now">Kafka + WebSocket 알림</div>
+        <div class="phase-cell now">실시간 시세 Push · Redis 서킷 브레이커 (Resilience4j)</div>
+        <div class="phase-cell now">부하테스트 (k6/Gatling) · 스펙 산정</div>
       </div>
       <div class="phase-row">
         <div class="phase-cell phase-label">Phase 4</div>
-        <div class="phase-cell">Kafka + WebSocket 알림</div>
-        <div class="phase-cell">실시간 시세 Push · Redis 서킷 브레이커 (Resilience4j)</div>
-        <div class="phase-cell">부하테스트 (k6/Gatling) · 스펙 산정</div>
+        <div class="phase-cell">TACO Index 산출</div>
+        <div class="phase-cell">Polymarket 연동</div>
+        <div class="phase-cell">데이터 파이프라인</div>
       </div>
       <div class="phase-row">
         <div class="phase-cell phase-label">Phase 5</div>
@@ -946,17 +946,17 @@
         </div>
       </div>
       <div class="decision-item">
-        <div class="q">JwtAuthenticationFilter</div>
+        <div class="q">Kafka DLT</div>
         <div>
-          <div class="a">Redis blacklist 체크 주석 처리 중</div>
-          <div class="note">Redis RTR + blacklist 도입 시 활성화</div>
+          <div class="a">Dead Letter Topic 미구현</div>
+          <div class="note">KafkaConsumer에 TODO 주석 · 뉴스 처리 실패 시 재처리 경로 없음</div>
         </div>
       </div>
       <div class="decision-item">
-        <div class="q">NewsController</div>
+        <div class="q">KafkaProducer 미연동</div>
         <div>
-          <div class="a">빈 스텁 상태</div>
-          <div class="note">NewsService 완성 · Kafka Consumer 구현 후 엔드포인트 연결 예정 (Phase 2)</div>
+          <div class="a">requestNewsCrawl · publishStockAlert 호출부 없음</div>
+          <div class="note">news.crawl-request(Spring→Django) · stock.alert 토픽 준비됨 · 실제 트리거 로직 미구현</div>
         </div>
       </div>
       <div class="decision-item">
