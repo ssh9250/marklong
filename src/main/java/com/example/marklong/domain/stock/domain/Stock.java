@@ -15,6 +15,8 @@ public class Stock extends BaseEntity {
     @Id
     private String stockCode; // 005930, AAPL 등
 
+    private String ticker;
+
     @Column(nullable = false)
     private String name;
 
@@ -23,16 +25,16 @@ public class Stock extends BaseEntity {
     private Market market;  //  KOSPI, NASDAQ 등
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Currency currency;  //  KRW, USD 등
 
     private String sector;
     private boolean active = true;
 
     @Builder
-    private Stock(String stockCode, String name, Market market,
+    private Stock(String stockCode, String ticker, String name, Market market,
                   Currency currency, String sector) {
         this.stockCode = stockCode;
+        this.ticker = ticker;
         this.name = name;
         this.market = market;
         this.currency = currency;
@@ -43,7 +45,4 @@ public class Stock extends BaseEntity {
     public void deactivate() {
         this.active = false;
     }
-
-
-
 }

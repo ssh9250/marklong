@@ -136,6 +136,7 @@ kis:
   base-url: ${KIS_BASE_URL}
   app-key: ${KIS_KEY}
   app-secret: ${KIS_SECRET}
+  ws-url: ${KIS_WS_URL}
 
 oauth2:
   redirect-uri: http://localhost:3000/oauth/callback

@@ -10,7 +10,15 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "stock_prices")
+@Table(
+        name = "stock_prices",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_stock_price_code_interval_timestamp",
+                        columnNames = {"stockCode", "interval", "timestamp"}
+                )
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StockPrice {
