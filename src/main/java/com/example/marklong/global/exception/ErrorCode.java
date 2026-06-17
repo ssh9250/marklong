@@ -42,7 +42,8 @@ public enum ErrorCode {
     COMMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "POST_004", "댓글에 대한 권한이 없습니다."),
 
     // kis
-    KIS_AUTH_FAILED(HttpStatus.BAD_REQUEST, "KIS_000", "KIS Api 요청에 실패하였습니다."),
+    KIS_AUTH_FAILED(HttpStatus.BAD_REQUEST, "KIS_000", "요청 토큰에 문제가 발생했습니다."),
+    KIS_API_ERROR(HttpStatus.BAD_REQUEST, "KIS_001", "KIS Api 요청에 실패했습니다."),
 
 
     // global

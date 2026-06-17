@@ -52,7 +52,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "로그아웃", description = "Refresh Token을 무효화합니다. Redis 도입 시 Access Token blacklist 등록 예정.")
+    @Operation(summary = "로그아웃", description = "Refresh Token을 무효화합니다.")
     public ResponseEntity<ApiResponse<Void>> logout(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletRequest httpRequest

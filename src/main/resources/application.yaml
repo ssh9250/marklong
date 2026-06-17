@@ -110,6 +110,10 @@ resilience4j:
           - java.io.IOException
   ratelimiter:
     instances:
+      kis:
+        limit-for-period: 20
+        limit-refresh-period: 1s
+        timeout-duration: 5s
       default:
         registerHealthIndicator: false
         limitRefreshPeriod: 1m

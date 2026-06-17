@@ -1,5 +1,6 @@
 -- Enable TimescaleDB extension
 CREATE EXTENSION IF NOT EXISTS timescaledb;
+SELECT create_hypertable('stock_prices', 'timestamp', if_not_exists => TRUE);
 
 -- Create hypertable for news content (time-series data)
 -- This will be created after the application creates the base news_content table

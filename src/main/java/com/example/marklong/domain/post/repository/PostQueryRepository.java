@@ -28,8 +28,8 @@ public class PostQueryRepository {
                 .from(post)
                 .join(user).on(post.userId.eq(user.id))
                 .where(
-                        user.deleted.isNull(),
-                        post.deleted.isNull(),
+                        user.deletedAt.isNull(),
+                        post.deletedAt.isNull(),
 
                         stockCodeEq(condition.getStockCode()),
                         titleContains(condition.getTitle()),

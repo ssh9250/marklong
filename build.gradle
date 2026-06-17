@@ -39,8 +39,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.data:spring-data-redis:3.2.1'
-    implementation 'io.lettuce:lettuce-core:6.3.2.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'

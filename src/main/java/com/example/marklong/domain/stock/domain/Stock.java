@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Stock extends BaseEntity {
     @Id
-    private String stockCode; // 005930, AAPL 등
-
-    private String ticker;
+    // TODO: 해외 종목은 KIS API의 SYMB 파라미터가 ticker를 그대로 요구하므로, stockCode에 ticker(AAPL 등)를 저장
+    //       CSV overseas 파일의 stock_code 컬럼을 제거하고 ticker 값을 그대로 stockCode로 사용할 것
+    private String stockCode; // 국내: 005930 / 해외: AAPL
 
     @Column(nullable = false)
     private String name;
@@ -31,10 +31,9 @@ public class Stock extends BaseEntity {
     private boolean active = true;
 
     @Builder
-    private Stock(String stockCode, String ticker, String name, Market market,
+    private Stock(String stockCode, String name, Market market,
                   Currency currency, String sector) {
         this.stockCode = stockCode;
-        this.ticker = ticker;
         this.name = name;
         this.market = market;
         this.currency = currency;

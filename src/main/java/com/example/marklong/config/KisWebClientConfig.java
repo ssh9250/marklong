@@ -17,7 +17,8 @@ public class KisWebClientConfig {
     private String baseUrl;
 
     @Bean
-    @Qualifier("kisWebClient")
+//    @Qualifier("kisWebClient")
+    // 어떤 빈인지는 빈 메서드 이름으로 자동 지정, 주입받는 쪽에서만 명시하면 됨
     public WebClient kisWebClient() {
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)

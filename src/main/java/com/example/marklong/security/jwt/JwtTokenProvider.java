@@ -96,9 +96,9 @@ public class JwtTokenProvider {
             return true;
         } catch (ExpiredJwtException e) {
             log.info("token expired");
-            return false;
+            throw e;
         } catch (JwtException | IllegalArgumentException e) {
-            return false;
+            throw e;
         }
     }
 

@@ -21,7 +21,7 @@
 ## [2026-04-29] JWT 패키지를 global.jwt → security.jwt 로 이동
 - 이유: JWT·필터·UserDetails는 인증/인가 관심사. `global`(공통 유틸·예외·응답)에 두면 보안 코드가 범용 공통 코드와 섞임
 - 대안: global 유지 → 보안 관심사 분산, 책임 경계 모호
-- 결정: `security/jwt`(토큰·필터), `security/auth`(UserDetails), `security/util`로 보안 코드를 한 축으로 응집. CLAUDE.md 패키지 원칙으로 명문화
+- 결정: `security/jwt`(토큰·필터), `security/auth`(UserDetails), `security/util`로 보안 코드를 한 축으로 응집.
 
 ---
 

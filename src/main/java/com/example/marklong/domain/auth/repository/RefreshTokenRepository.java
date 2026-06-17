@@ -54,7 +54,7 @@ public class RefreshTokenRepository {
 
     public void delete(Long userId) {
         String key = KEY_PREFIX + userId;
-        stringRedisTemplate.delete(KEY_PREFIX + userId);
+        stringRedisTemplate.delete(key);
         jpaRepository.deleteByUserId(userId);
     }
 

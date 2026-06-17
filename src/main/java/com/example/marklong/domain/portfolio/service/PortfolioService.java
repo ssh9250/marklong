@@ -6,6 +6,7 @@ import com.example.marklong.domain.portfolio.domain.Portfolio;
 import com.example.marklong.domain.portfolio.domain.PortfolioItem;
 import com.example.marklong.domain.portfolio.dto.*;
 import com.example.marklong.domain.portfolio.repository.PortfolioItemRepository;
+import com.example.marklong.domain.portfolio.repository.PortfolioQueryRepository;
 import com.example.marklong.domain.portfolio.repository.PortfolioRepository;
 import com.example.marklong.domain.stock.domain.Stock;
 import com.example.marklong.domain.stock.repository.StockRepository;
@@ -26,6 +27,7 @@ public class PortfolioService {
     private final PortfolioItemRepository portfolioItemRepository;
     private final HoldingRepository holdingRepository;
     private final StockRepository stockRepository;
+    private final PortfolioQueryRepository portfolioQueryRepository;
 
     public Long create(Long userId, PortfolioCreateRequest request) {
         Portfolio portfolio = Portfolio.builder()
@@ -121,17 +123,33 @@ public class PortfolioService {
         return PortfolioResponse.of(portfolio, totalInvestment, totalValuation);
     }
 
+    // TODO: N+1 문제 해결하기
     private List<PortfolioItemResponse> buildItemResponse(Long portfolioId) {
-        return portfolioItemRepository.findAllByPortfolioIdAndDeletedAtIsNull(portfolioId)
-                .stream()
-                .map(item -> {
-                    Holding holding = holdingRepository.findById(item.getId())
-                            .orElseThrow(() -> new BusinessException(ErrorCode.HOLDING_NOT_FOUND));
-                    Stock stock = stockRepository.findByStockCodeAndActiveTrue(item.getStockCode())
-                            .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
 
-                    return PortfolioItemResponse.of(item, stock.getName(), holding, BigDecimal.ZERO); // 현재가는 나중에 외부api, redis로 가져옴
-                })
+        List<PortfolioItemViewSource> source = portfolioQueryRepository.buildItemResponseSource(portfolioId);
+
+        return source.stream()
+                .map(s ->
+                        PortfolioItemResponse.of(
+                                s.item(),
+                                s.stock().getName(),
+                                s.holding(),
+                                BigDecimal.ZERO // TODO: 현재가는 나중에 외부api, redis로 가져옴
+                        ))
                 .toList();
+
+
+
+//        return portfolioItemRepository.findAllByPortfolioIdAndDeletedAtIsNull(portfolioId)
+//                .stream()
+//                .map(item -> {
+//                    Holding holding = holdingRepository.findById(item.getHoldingId())
+//                            .orElseThrow(() -> new BusinessException(ErrorCode.HOLDING_NOT_FOUND));
+//                    Stock stock = stockRepository.findByStockCodeAndActiveTrue(item.getStockCode())
+//                            .orElseThrow(() -> new BusinessException(ErrorCode.STOCK_NOT_FOUND));
+//
+//                    return PortfolioItemResponse.of(item, stock.getName(), holding, BigDecimal.ZERO);
+//                })
+//                .toList();
     }
 }

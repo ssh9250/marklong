@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+// TODO: TimescaleDB hypertable 적용 필요 — JPA DDL로는 생성되지 않으므로 migration SQL에서 별도 실행
+//       SELECT create_hypertable('stock_prices', 'timestamp', if_not_exists => TRUE);
 @Entity
 @Table(
         name = "stock_prices",

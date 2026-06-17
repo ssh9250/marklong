@@ -17,7 +17,7 @@ public class StockPriceRedisRepository {
     private static final String PRICE_KEY_PREFIX = "stock:price:";
     private static final Duration PRICE_TTL = Duration.ofMinutes(5);
 
-    public void saveCurrentxPrice(String stockCode, BigDecimal price) {
+    public void saveCurrentPrice(String stockCode, BigDecimal price) {
         stringRedisTemplate.opsForValue()
                 .set(PRICE_KEY_PREFIX + stockCode, price.toPlainString(), PRICE_TTL);
     }
