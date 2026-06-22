@@ -9,10 +9,14 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 @RequiredArgsConstructor
 public class RefreshTokenRepository {
+    // 레거시 로직
     private final StringRedisTemplate stringRedisTemplate;
     private final RefreshTokenJpaRepository jpaRepository;
     private static final String KEY_PREFIX = "refresh:";

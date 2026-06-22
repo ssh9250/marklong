@@ -18,6 +18,13 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
+    private static final String SESSION_KEY = "user:%d:sessions";
+    private static final String TOKEN_KEY = "rt:%s";
+    private static final int    MAX_DEVICES = 3;
+
+    private static final String FIELD_USER_ID   = "userId";
+    private static final String FIELD_HASHED_RT = "hashedRT";
+
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenJpaRepository refreshTokenJpaRepository;
 

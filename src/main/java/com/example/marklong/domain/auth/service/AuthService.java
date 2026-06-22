@@ -11,7 +11,6 @@ import com.example.marklong.global.exception.BusinessException;
 import com.example.marklong.global.exception.ErrorCode;
 import com.example.marklong.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 @Transactional
-@Slf4j
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -78,16 +76,11 @@ public class AuthService {
 
         long remainingTime = jwtProvider.getExpiration(accessToken);
 
-        if (remainingTime > 0) {
-            stringRedisTemplate.opsForValue().set(
-                    "blacklist:" + accessToken,
-                    "logged_out",
-                    remainingTime, TimeUnit.MILLISECONDS
-            );
-        }
-        else  {
-            log.info("already expired");
-        }
+        stringRedisTemplate.opsForValue().set(
+                "blacklist:" + accessToken,
+                "logged_out",
+                remainingTime, TimeUnit.MILLISECONDS
+        );
     }
 
     private User authenticate(LoginRequest request) {

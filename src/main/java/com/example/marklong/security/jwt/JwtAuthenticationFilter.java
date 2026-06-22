@@ -47,4 +47,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
+    private void reject() {
+        // todo: security 넘기는 대신 직접 리젝트
+    }
 }

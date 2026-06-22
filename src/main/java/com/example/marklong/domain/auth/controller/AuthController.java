@@ -6,7 +6,7 @@ import com.example.marklong.domain.auth.dto.SignupRequest;
 import com.example.marklong.domain.auth.dto.TokenResponse;
 import com.example.marklong.domain.auth.service.AuthService;
 import com.example.marklong.global.response.ApiResponse;
-import com.example.marklong.security.auth.CustomUserDetails;
+import com.example.marklong.security.auth.AuthUser;
 import com.example.marklong.security.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,11 +54,11 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "Refresh Token을 무효화합니다.")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal AuthUser authUser,
             HttpServletRequest httpRequest
     ) {
         String accessToken = jwtTokenProvider.resolveToken(httpRequest);
-        authService.logout(userDetails.getUserId(), accessToken);
+        authService.logout(authUser.userId(), accessToken);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }

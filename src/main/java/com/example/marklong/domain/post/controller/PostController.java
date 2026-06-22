@@ -4,7 +4,7 @@ import com.example.marklong.domain.post.dto.*;
 import com.example.marklong.domain.post.service.CommentService;
 import com.example.marklong.domain.post.service.PostService;
 import com.example.marklong.global.response.ApiResponse;
-import com.example.marklong.security.auth.CustomUserDetails;
+import com.example.marklong.security.auth.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +28,10 @@ public class PostController {
     @PostMapping
     @Operation(summary = "게시글 작성")
     public ResponseEntity<ApiResponse<Long>> create(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal AuthUser authUser,
             @RequestBody PostCreateRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(postService.create(userDetails.getUserId(), request)));
+        return ResponseEntity.ok(ApiResponse.ok(postService.create(authUser.userId(), request)));
     }
 
     @GetMapping
@@ -45,10 +45,10 @@ public class PostController {
     @GetMapping("/me")
     @Operation(summary = "내 게시글 목록 조회")
     public ResponseEntity<ApiResponse<List<PostListResponse>>> getMyPosts(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal AuthUser authUser,
             @ModelAttribute PostSearchCondition condition
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(postService.getMyPosts(userDetails.getUserId(), condition)));
+        return ResponseEntity.ok(ApiResponse.ok(postService.getMyPosts(authUser.userId(), condition)));
     }
 
     @GetMapping("/{postId}")
@@ -62,21 +62,21 @@ public class PostController {
     @PutMapping("/{postId}")
     @Operation(summary = "게시글 수정")
     public ResponseEntity<ApiResponse<Void>> update(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long postId,
             @RequestBody PostUpdateRequest request
     ) {
-        postService.update(userDetails.getUserId(), postId, request);
+        postService.update(authUser.userId(), postId, request);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     @DeleteMapping("/{postId}")
     @Operation(summary = "게시글 삭제")
     public ResponseEntity<ApiResponse<Void>> delete(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long postId
     ) {
-        postService.delete(userDetails.getUserId(), postId);
+        postService.delete(authUser.userId(), postId);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
@@ -85,11 +85,11 @@ public class PostController {
     @PostMapping("/{postId}/comments")
     @Operation(summary = "댓글 작성")
     public ResponseEntity<ApiResponse<Long>> createComment(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long postId,
             @RequestBody CommentCreateRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(commentService.create(userDetails.getUserId(), postId, request)));
+        return ResponseEntity.ok(ApiResponse.ok(commentService.create(authUser.userId(), postId, request)));
     }
 
     @GetMapping("/{postId}/comments")
@@ -103,29 +103,29 @@ public class PostController {
     @GetMapping("/me/comments")
     @Operation(summary = "내 댓글 목록 조회")
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getMyComments(
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @AuthenticationPrincipal AuthUser authUser
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(commentService.getMyComments(userDetails.getUserId())));
+        return ResponseEntity.ok(ApiResponse.ok(commentService.getMyComments(authUser.userId())));
     }
 
     @PutMapping("/comments/{commentId}")
     @Operation(summary = "댓글 수정")
     public ResponseEntity<ApiResponse<Void>> updateComment(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long commentId,
             @RequestBody CommentUpdateRequest request
     ) {
-        commentService.update(userDetails.getUserId(), commentId, request);
+        commentService.update(authUser.userId(), commentId, request);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 
     @DeleteMapping("/comments/{commentId}")
     @Operation(summary = "댓글 삭제")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long commentId
     ) {
-        commentService.delete(userDetails.getUserId(), commentId);
+        commentService.delete(authUser.userId(), commentId);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }
