@@ -133,8 +133,8 @@ springdoc:
 
 jwt:
   secret: ${JWT_SECRET}
-  access-expiration-ms: 1800000
-  refresh-expiration-ms: 1209600000
+  access-expiration-ms: 300000
+  refresh-expiration-ms: 604800000
 
 kis:
   base-url: ${KIS_BASE_URL}
