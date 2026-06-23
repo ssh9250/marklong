@@ -1,8 +1,10 @@
 package com.example.marklong.domain.auth.service;
 
 import com.example.marklong.domain.auth.dto.LoginRequest;
+import com.example.marklong.domain.auth.dto.RotateResult;
 import com.example.marklong.domain.auth.dto.SignupRequest;
 import com.example.marklong.domain.auth.dto.TokenResponse;
+import com.example.marklong.domain.auth.repository.RefreshTokenRedisRepository;
 import com.example.marklong.domain.user.domain.OAuthProvider;
 import com.example.marklong.domain.user.domain.Role;
 import com.example.marklong.domain.user.domain.User;
@@ -25,7 +27,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtProvider;
-    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRedisRepository refreshTokenRedisRepository;
     private final StringRedisTemplate stringRedisTemplate;
 
     public void signup(SignupRequest request) {
@@ -47,16 +49,16 @@ public class AuthService {
         User user = authenticate(request);
 
         String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
-        String refreshToken = jwtProvider.createRefreshToken();
-
-        // refresh 저장
-        refreshTokenService.saveOrUpdate(user.getId(), refreshToken);
+        String refreshToken = refreshTokenRedisRepository.save(user.getId());
 
         return TokenResponse.of(accessToken, refreshToken);
     }
 
     public TokenResponse reissue(String refreshToken) {
-        Long userId = refreshTokenService.extractUserId(refreshToken);
+        RotateResult result = refreshTokenRedisRepository.rotate(refreshToken);
+        Long userId = result.userId();
+        String newRefreshToken = result.newToken();
+
         refreshTokenService.validate(userId, refreshToken);
 
         Role role = userRepository.findUserByIdAndDeletedAtIsNull(userId)

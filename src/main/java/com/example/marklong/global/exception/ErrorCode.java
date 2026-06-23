@@ -16,6 +16,7 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_006", "만료된 토큰입니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH_007", "인증이 필요합니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_008", "접근 권한이 없습니다."),
+    TOKEN_REUSE_DETECTED(HttpStatus.UNAUTHORIZED, "AUTH_009", "토큰 재사용이 감지되었습니다."),
 
     // OAuth
     OAUTH_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "OAUTH_001", "연결된 이메일을 찾을 수 없습니다."),
