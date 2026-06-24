@@ -3,6 +3,7 @@ package com.example.marklong.config;
 import com.example.marklong.domain.auth.oauth.CustomOAuth2UserService;
 import com.example.marklong.domain.auth.oauth.OAuth2AuthenticationFailureHandler;
 import com.example.marklong.domain.auth.oauth.OAuth2AuthenticationSuccessHandler;
+import com.example.marklong.domain.auth.repository.RefreshTokenRedisRepository;
 import com.example.marklong.global.exception.ErrorCode;
 import com.example.marklong.security.auth.CustomUserDetailsService;
 import com.example.marklong.security.jwt.JwtAuthenticationFilter;
@@ -41,6 +42,7 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     private final StringRedisTemplate stringRedisTemplate;
+    private final RefreshTokenRedisRepository refreshTokenRedisRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -93,7 +95,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, stringRedisTemplate);
+        return new JwtAuthenticationFilter(jwtTokenProvider, stringRedisTemplate, refreshTokenRedisRepository);
     }
 
     @Bean

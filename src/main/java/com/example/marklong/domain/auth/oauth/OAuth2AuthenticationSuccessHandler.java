@@ -1,5 +1,6 @@
 package com.example.marklong.domain.auth.oauth;
 
+import com.example.marklong.domain.auth.repository.RefreshTokenRedisRepository;
 import com.example.marklong.domain.auth.service.RefreshTokenService;
 import com.example.marklong.domain.user.domain.User;
 import com.example.marklong.security.jwt.JwtTokenProvider;
@@ -20,7 +21,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtTokenProvider jwtProvider;
-    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRedisRepository refreshTokenRedisRepository;
 
     @Value("${oauth2.redirect-uri}")
     private String redirectUri;
@@ -42,7 +43,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
         String refreshToken = jwtProvider.createRefreshToken();
-        refreshTokenService.saveOrUpdate(user.getId(), refreshToken);
 
         // 1. Access Token을 쿠키에 저장
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)

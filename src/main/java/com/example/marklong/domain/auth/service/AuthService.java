@@ -56,33 +56,30 @@ public class AuthService {
 
     public TokenResponse reissue(String refreshToken) {
         RotateResult result = refreshTokenRedisRepository.rotate(refreshToken);
+
         Long userId = result.userId();
         String newRefreshToken = result.newToken();
 
-        refreshTokenService.validate(userId, refreshToken);
+        User user = userRepository.findUserByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Role role = userRepository.findUserByIdAndDeletedAtIsNull(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND)).getRole();
-
-        String newAccessToken = jwtProvider.createAccessToken(userId, role);
-        String newRefreshToken = jwtProvider.createRefreshToken();
-
-        refreshTokenService.saveOrUpdate(userId, newRefreshToken);
+        String newAccessToken = jwtProvider.createAccessToken(userId, user.getRole());
 
         return TokenResponse.of(newAccessToken, newRefreshToken);
     }
 
     public void logout(Long userId, String accessToken) {
-        // access,
-        refreshTokenService.delete(userId);
+        refreshTokenRedisRepository.revokeAll(userId);
 
-        long remainingTime = jwtProvider.getExpiration(accessToken);
 
-        stringRedisTemplate.opsForValue().set(
-                "blacklist:" + accessToken,
-                "logged_out",
-                remainingTime, TimeUnit.MILLISECONDS
-        );
+        // AT blacklist 등록 => phase4
+//        long remainingTime = jwtProvider.getExpiration(accessToken);
+//
+//        stringRedisTemplate.opsForValue().set(
+//                "blacklist:" + accessToken,
+//                "logged_out",
+//                remainingTime, TimeUnit.MILLISECONDS
+//        );
     }
 
     private User authenticate(LoginRequest request) {

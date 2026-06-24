@@ -119,6 +119,21 @@ public class JwtTokenProvider {
         }
     }
 
+    public Long getIssuedAt(String token) {
+        try {
+            Date issuedAt = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getIssuedAt();
+
+            return issuedAt != null ? issuedAt.getTime() : null;
+        } catch (JwtException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(secretKey)
