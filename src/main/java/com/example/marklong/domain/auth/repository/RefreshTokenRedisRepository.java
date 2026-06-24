@@ -54,9 +54,23 @@ public class RefreshTokenRedisRepository {
             end
             
             local status = nil
+            local issuedAt = nil
+            
             for i = 1, #old, 2 do
                 if old[i] == 'status' then
                     status = old[i+1]
+                elseif old[i] == 'issuedAt' then
+                        issuedAt = tonumber(old[i+1])
+                end
+            end
+            
+            local revokedAfter = redis.call('GET', KEYS[3])
+            
+            if revokedAfter ~= false then
+                revokedAfter = tonumber(revokedAfter)
+            
+                if issuedAt ~= nil and issuedAt < revokedAfter then
+                    return -2
                 end
             end
             
@@ -116,7 +130,7 @@ public class RefreshTokenRedisRepository {
 
         Long result = stringRedisTemplate.execute(
                 rotateScript,
-                List.of(oldKey, newKey),
+                List.of(oldKey, newKey, revokedAfterKey(userId)),
                 String.valueOf(argvUserId),
                 String.valueOf(now),
                 String.valueOf(expiresAt),
@@ -133,6 +147,11 @@ public class RefreshTokenRedisRepository {
                 throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
             }
         }
+
+        if (result == -2L) {
+            throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
+        }
+
         return new RotateResult(newToken, extractUserId(newKey));
     }
 
