@@ -34,15 +34,7 @@ public class RefreshTokenRedisRepository {
     private static final String RT_KEY_PREFIX = "rt:";
     private static final String REVOKED_AFTER_KEY = "user:%d:rtRevokedAfter";
 
-    // ── Lua: rotate ──────────────────────────────────────────────────────────
-    // KEYS[1] = rt:{oldToken}
-    // KEYS[2] = rt:{newToken}
-    // ARGV[1] = userId
-    // ARGV[2] = issuedAt (epoch seconds)
-    // ARGV[3] = expiresAt (epoch seconds)
-    // ARGV[4] = ttl (seconds)
-    //
-    // 반환값:
+    // 반환값
     //   1  → 성공
     //   0  → oldToken 없음 (이미 만료되었거나 존재하지 않음)
     //  -1  → status가 ACTIVE가 아님 (재사용 감지 → 탈취 의심)
@@ -50,48 +42,64 @@ public class RefreshTokenRedisRepository {
     private static final String ROTATE_SCRIPT = """
             local old = redis.call('HGETALL', KEYS[1])
             if #old == 0 then
-                return 0
+                return {0, 0}
             end
             
             local status = nil
             local issuedAt = nil
+            local userId = nil
             
             for i = 1, #old, 2 do
                 if old[i] == 'status' then
                     status = old[i+1]
                 elseif old[i] == 'issuedAt' then
-                        issuedAt = tonumber(old[i+1])
+                    issuedAt = tonumber(old[i+1])
+                elseif old[i] == 'userId' then
+                    userId = tonumber(old[i+1])
                 end
             end
             
-            local revokedAfter = redis.call('GET', KEYS[3])
+            local revokedAfterKey = 'user:' .. userId .. ':rtRevokedAfter'
+            local revokedAfter = redis.call('GET', revokedAfterKey)
             
             if revokedAfter ~= false then
                 revokedAfter = tonumber(revokedAfter)
             
                 if issuedAt ~= nil and issuedAt < revokedAfter then
-                    return -2
+                    return {-2, userId}
                 end
             end
             
             if status ~= 'ACTIVE' then
-                return -1
+                return {-1, userId}
             end
+            
             
             redis.call('HSET', KEYS[1], 'status', 'ROTATED')
             
             redis.call('HSET', KEYS[2],
-                'userId',    ARGV[1],
+                'userId',    userId,
                 'status',    'ACTIVE',
-                'issuedAt',  ARGV[2],
-                'expiresAt', ARGV[3]
+                'issuedAt',  ARGV[1],
+                'expiresAt', ARGV[2]
             )
-            redis.call('EXPIRE', KEYS[2], ARGV[4])
+            redis.call('EXPIRE', KEYS[2], ARGV[3])
             
-            return 1
+            return {1, userId}
             """;
 
-    private final RedisScript<Long> rotateScript = RedisScript.of(ROTATE_SCRIPT, Long.class);
+    private static final String SAVE_SCRIPT = """
+            redis.call('HSET', KEYS[1],
+            'userId',    ARGV[1],
+            'status',    'ACTIVE',
+            'issuedAt',    ARGV[2],
+            'expiresAt',    ARGV[3])
+            
+            return redis.call('EXPIRE', KEYS[1], ARGV[4])
+            """;
+
+    private final RedisScript<List> rotateScript = RedisScript.of(ROTATE_SCRIPT, List.class);
+    private final RedisScript<Long> saveScript = RedisScript.of(SAVE_SCRIPT, Long.class);
 
     public String save(Long userId) {
         String token = UUID.randomUUID().toString();
@@ -100,13 +108,24 @@ public class RefreshTokenRedisRepository {
         long expiresAt = now + refreshExpirationMs / 1000;
         long ttl = refreshExpirationMs / 1000;
 
-        stringRedisTemplate.opsForHash().putAll(key, Map.of(
-                "userId", userId.toString(),
-                "status", "ACTIVE",
-                "issuedAt", String.valueOf(now),
-                "expiresAt", String.valueOf(expiresAt)
-        ));
-        stringRedisTemplate.expire(key, ttl, TimeUnit.SECONDS);
+//        stringRedisTemplate.opsForHash().putAll(key, Map.of(
+//                "userId", userId.toString(),
+//                "status", "ACTIVE",
+//                "issuedAt", String.valueOf(now),
+//                "expiresAt", String.valueOf(expiresAt)
+//        ));
+//        stringRedisTemplate.expire(key, ttl, TimeUnit.SECONDS);
+
+        Long result = stringRedisTemplate.execute(
+                saveScript,
+                List.of(key),
+                userId.toString(),
+                String.valueOf(now),
+                String.valueOf(expiresAt),
+                String.valueOf(ttl)
+        );
+
+        if (result == null || result != 1) return null;
 
         return token;
     }
@@ -125,34 +144,54 @@ public class RefreshTokenRedisRepository {
         long expiresAt = now + refreshExpirationMs / 1000;
         long ttl = refreshExpirationMs / 1000;
 
-        Long userId = extractUserId(oldKey);
-        Long argvUserId = userId != null ? userId : -1L;
+//        Long userId = extractUserId(oldKey);
+//        Long argvUserId = userId != null ? userId : -1L;
 
-        Long result = stringRedisTemplate.execute(
+        List<?> result = stringRedisTemplate.execute(
                 rotateScript,
-                List.of(oldKey, newKey, revokedAfterKey(userId)),
-                String.valueOf(argvUserId),
+                List.of(oldKey, newKey),
+//                String.valueOf(argvUserId),
                 String.valueOf(now),
                 String.valueOf(expiresAt),
                 String.valueOf(ttl)
         );
 
-        if (result == null || result == 0L) {
+        if (result == null || result.size() < 2) {
+            throw new IllegalStateException("Unexpected Lua result");
+        }
+
+        Object codeObj = result.get(0);
+        Object userIdObj = result.get(1);
+
+        if (!(codeObj instanceof Number) || !(userIdObj instanceof Number)) {
+            throw new IllegalStateException("Unexpected Lua result");
+        }
+
+        Long code = ((Number) result.get(0)).longValue();
+        Long userId = ((Number) result.get(1)).longValue();
+
+        if (code == 0L) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
-        if (result == -1L) {
-            if (userId != null) {
-                revokeAll(userId);
-                throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
-            }
-        }
+        // 공격자 reissue 후 정상 사용자 reissue
+        // rotate, new, reissue -> rotate 접근 -> is ROTATED => kick
 
-        if (result == -2L) {
+        // 정상 사용자 reissue 후 탈취
+        // rotate 접근
+
+        // 이미 무효화된 토큰 사용
+        if (code == -2L) {
             throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
         }
 
-        return new RotateResult(newToken, extractUserId(newKey));
+        // rotate 접근
+        if (code == -1L) {
+            revokeAll(userId);
+            throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
+        }
+
+        return new RotateResult(newToken, userId);
     }
 
     public void revokeAll(Long userId) {
