@@ -31,8 +31,10 @@ public class RefreshTokenRedisRepository {
     @Value("${jwt.refresh-expiration-ms}")
     private long refreshExpirationMs;
 
-    private static final String RT_KEY_PREFIX = "rt:";
-    private static final String REVOKED_AFTER_KEY = "user:%d:rtRevokedAfter";
+    private static final String RT_PREFIX = "rt:";
+    private static final String FAMILY_PREFIX = "family:";
+    private static final String FAMILIES_ZSET = "user:%d:families";
+    private static final String AT_BLACKLIST = "bl:at:%s";
 
     // 반환값
     //   1  → 성공
@@ -100,10 +102,14 @@ public class RefreshTokenRedisRepository {
 
     private final RedisScript<List> rotateScript = RedisScript.of(ROTATE_SCRIPT, List.class);
     private final RedisScript<Long> saveScript = RedisScript.of(SAVE_SCRIPT, Long.class);
+    private final RedisScript<Long> revokeScript = RedisScript.of(SAVE_SCRIPT, Long.class);
 
     public String save(Long userId) {
-        String token = UUID.randomUUID().toString();
-        String key = rtKey(token);
+        String rtId = UUID.randomUUID().toString();
+        String familyId = UUID.randomUUID().toString();
+
+        String key = rtKey(rtId);
+
         long now = epochNow();
         long expiresAt = now + refreshExpirationMs / 1000;
         long ttl = refreshExpirationMs / 1000;
@@ -118,80 +124,48 @@ public class RefreshTokenRedisRepository {
 
         Long result = stringRedisTemplate.execute(
                 saveScript,
-                List.of(key),
-                userId.toString(),
+                List.of(rtKey(rtId), familyKey(familyId), familiesZSet(userId)),
+                String.valueOf(userId),
+                familyId,
                 String.valueOf(now),
                 String.valueOf(expiresAt),
                 String.valueOf(ttl)
         );
 
-        if (result == null || result != 1) return null;
-
-        return token;
+        return rtId;
     }
 
-    public RotateResult rotate(String oldToken) {
-        // token -> hashed and compare -> hit/miss
-        // hit -> ACTIVE/ROTATE
-        // ACTIVE -> redis search and change status, add new token
-        // ROTATE -> reuse detection logic
-        // miss -> throw new invalid token exception
-
-        String oldKey = rtKey(oldToken);
-        String newToken = UUID.randomUUID().toString();
-        String newKey = rtKey(newToken);
+    public RotateResult rotate(String oldRtId) {
+        String newRtId = UUID.randomUUID().toString();
         long now = epochNow();
         long expiresAt = now + refreshExpirationMs / 1000;
         long ttl = refreshExpirationMs / 1000;
 
-//        Long userId = extractUserId(oldKey);
-//        Long argvUserId = userId != null ? userId : -1L;
-
         List<?> result = stringRedisTemplate.execute(
                 rotateScript,
-                List.of(oldKey, newKey),
-//                String.valueOf(argvUserId),
+                List.of(rtKey(oldRtId), rtKey(newRtId)),
                 String.valueOf(now),
                 String.valueOf(expiresAt),
                 String.valueOf(ttl)
         );
 
-        if (result == null || result.size() < 2) {
-            throw new IllegalStateException("Unexpected Lua result");
+        if (result == null || result.size() < 3) {
+            throw new BusinessException(ErrorCode.TOKEN_ROTATION_FAILED);
         }
 
-        Object codeObj = result.get(0);
-        Object userIdObj = result.get(1);
+        long code = toLong(result.get(0));
+        long userId =  toLong(result.get(1));
+        String familyId = result.get(2) == null ? "" : result.get(2).toString();
 
-        if (!(codeObj instanceof Number) || !(userIdObj instanceof Number)) {
-            throw new IllegalStateException("Unexpected Lua result");
-        }
-
-        Long code = ((Number) result.get(0)).longValue();
-        Long userId = ((Number) result.get(1)).longValue();
-
-        if (code == 0L) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN);
-        }
-
-        // 공격자 reissue 후 정상 사용자 reissue
-        // rotate, new, reissue -> rotate 접근 -> is ROTATED => kick
-
-        // 정상 사용자 reissue 후 탈취
-        // rotate 접근
-
-        // 이미 무효화된 토큰 사용
-        if (code == -2L) {
-            throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
-        }
-
-        // rotate 접근
-        if (code == -1L) {
-            revokeAll(userId);
-            throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
-        }
-
-        return new RotateResult(newToken, userId);
+        return switch ((int) code) {
+            case 0 -> throw new BusinessException(ErrorCode.INVALID_TOKEN);
+            case -1 -> throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
+            case -2 -> {
+                revokeAll(userId);
+                throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
+            }
+            default -> new RotateResult(newRtId, userId, familyId);
+        };
     }
 
     public void revokeAll(Long userId) {
@@ -220,11 +194,26 @@ public class RefreshTokenRedisRepository {
     }
 
     private String rtKey(String token) {
-        return RT_KEY_PREFIX + token;
+        return RT_PREFIX + token;
     }
 
-    private String revokedAfterKey(Long userId) {
-        return String.format(REVOKED_AFTER_KEY, userId);
+    private String familyKey(String familyId) {
+        return FAMILY_PREFIX + familyId;
+    }
+
+    private String familiesZSet(Long userId) {
+        return String.format(FAMILIES_ZSET, userId);
+    }
+
+    private String atBlacklistKey(String jti) {
+        return String.format(AT_BLACKLIST, jti);
+    }
+
+    private long toLong(Object o) {
+        if (o instanceof Number n) {
+            return n.longValue();
+        }
+        throw new IllegalStateException("Expected Number but got: " + o);
     }
 
     private long epochNow() {
