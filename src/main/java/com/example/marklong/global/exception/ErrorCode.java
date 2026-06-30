@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
     // auth
+    TOKEN_PROVIDER_ERROR(HttpStatus.NOT_FOUND, "AUTH_000", "토큰 가공에 실패했습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH_001", "존재하지 않는 유저입니다."),
     EMAIL_DUPLICATED(HttpStatus.CONFLICT, "AUTH_002", "이미 사용 중인 이메일입니다."),
     NICKNAME_DUPLICATED(HttpStatus.CONFLICT, "AUTH_003", "이미 사용 중인 별명입니다."),

@@ -104,11 +104,8 @@ public class RefreshTokenRedisRepository {
     private final RedisScript<Long> saveScript = RedisScript.of(SAVE_SCRIPT, Long.class);
     private final RedisScript<Long> revokeScript = RedisScript.of(SAVE_SCRIPT, Long.class);
 
-    public String save(Long userId) {
+    public String save(Long userId, String familyId) {
         String rtId = UUID.randomUUID().toString();
-        String familyId = UUID.randomUUID().toString();
-
-        String key = rtKey(rtId);
 
         long now = epochNow();
         long expiresAt = now + refreshExpirationMs / 1000;
@@ -154,7 +151,7 @@ public class RefreshTokenRedisRepository {
         }
 
         long code = toLong(result.get(0));
-        long userId =  toLong(result.get(1));
+        long userId = toLong(result.get(1));
         String familyId = result.get(2) == null ? "" : result.get(2).toString();
 
         return switch ((int) code) {
@@ -168,29 +165,38 @@ public class RefreshTokenRedisRepository {
         };
     }
 
+    public void logout(Long userId, String familyId) {
+        stringRedisTemplate.opsForHash().put(familyKey(familyId), "status", "REVOKED");
+        stringRedisTemplate.opsForZSet().remove(familiesZSet(userId), familyId);
+    }
+
     public void revokeAll(Long userId) {
-        String key = revokedAfterKey(userId);
-        stringRedisTemplate.opsForValue().set(key, String.valueOf(epochNow()));
+        stringRedisTemplate.execute(
+                revokeScript,
+                List.of(familiesZSet(userId))
+        );
     }
 
-    public Optional<Long> getRevokedAfter(Long userId) {
-        String val = stringRedisTemplate.opsForValue().get(revokedAfterKey(userId));
-        if (val == null) {
-            return Optional.empty();
+    public void blacklistAt(String jti, long remainingMs) {
+        if (remainingMs < 0) {
+            return;
         }
-        return Optional.of(Long.parseLong(val));
+
+        stringRedisTemplate.opsForValue().set(
+                atBlacklistKey(jti),
+                "1",
+                remainingMs,
+                TimeUnit.MILLISECONDS
+        );
     }
 
-    private Map<Object, Object> findHashByToken(String rtKey) {
-        return stringRedisTemplate.opsForHash().entries(rtKey);
+    public boolean isATBlacklisted(String jti) {
+        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(atBlacklistKey(jti)));
     }
 
-    private Long extractUserId(String rtKey) {
-        Object userId = stringRedisTemplate.opsForHash().get(rtKey, "userId");
-        if (userId == null) {
-            return null;
-        }
-        return Long.parseLong(userId.toString());
+    public void cleanExpiredFamilies(Long userId) {
+        stringRedisTemplate.opsForZSet()
+                .removeRangeByScore(familiesZSet(userId), 0, epochNow());
     }
 
     private String rtKey(String token) {

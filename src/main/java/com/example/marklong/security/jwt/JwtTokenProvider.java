@@ -1,6 +1,8 @@
 package com.example.marklong.security.jwt;
 
 import com.example.marklong.domain.user.domain.Role;
+import com.example.marklong.global.exception.BusinessException;
+import com.example.marklong.global.exception.ErrorCode;
 import com.example.marklong.security.auth.AuthUser;
 import com.example.marklong.security.auth.CustomUserDetailsService;
 import io.jsonwebtoken.*;
@@ -54,6 +56,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("role", role.name())
+                .claim("familyId", UUID.randomUUID().toString())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessExpirationMs))
                 .signWith(secretKey)
@@ -62,6 +65,20 @@ public class JwtTokenProvider {
 
     public String createRefreshToken() {
         return UUID.randomUUID().toString();
+    }
+
+    public String getFamilyId(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            return String.valueOf(claims.get("familyId", String.class));
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.TOKEN_PROVIDER_ERROR);
+        }
     }
 
     public long getExpiration(String token) {

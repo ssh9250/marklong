@@ -49,7 +49,8 @@ public class AuthService {
         User user = authenticate(request);
 
         String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
-        String refreshToken = refreshTokenRedisRepository.save(user.getId());
+        String familyId = jwtProvider.getFamilyId(accessToken);
+        String refreshToken = refreshTokenRedisRepository.save(user.getId(), familyId);
 
         return TokenResponse.of(accessToken, refreshToken);
     }
