@@ -51,12 +51,12 @@ public class JwtTokenProvider {
         this.secretKey = Keys.hmacShaKeyFor(secretBytes);
     }
 
-    public String createAccessToken(Long userId, Role role) {
+    public String createAccessToken(Long userId, Role role, String familyId) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("role", role.name())
-                .claim("familyId", UUID.randomUUID().toString())
+                .claim("familyId", familyId)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessExpirationMs))
                 .signWith(secretKey)
@@ -92,7 +92,7 @@ public class JwtTokenProvider {
             Date expiration = claims.getExpiration();
             Date now = new Date();
 
-            long diff =  expiration.getTime() - now.getTime();
+            long diff = expiration.getTime() - now.getTime();
             return diff > 0 ? diff : 0;
         } catch (Exception e) {
             return 0;

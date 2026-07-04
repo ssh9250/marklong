@@ -1,6 +1,7 @@
 package com.example.marklong.domain.auth.repository;
 
 import com.example.marklong.domain.auth.dto.RotateResult;
+import com.example.marklong.domain.auth.dto.TokenIssueResult;
 import com.example.marklong.global.exception.BusinessException;
 import com.example.marklong.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,6 @@ import java.util.concurrent.TimeUnit;
 public class RefreshTokenRedisRepository {
     private final StringRedisTemplate stringRedisTemplate;
 
-    /*
-     * redis 설계
-     * rt:{token}, value = {userId, status, issuedAt, expiresAt}
-     * user:{userId}:rtRevokedAfter , value = ttl or issuedAt or version
-     *
-     * */
-
     @Value("${jwt.refresh-expiration-ms}")
     private long refreshExpirationMs;
 
@@ -36,88 +30,83 @@ public class RefreshTokenRedisRepository {
     private static final String FAMILIES_ZSET = "user:%d:families";
     private static final String AT_BLACKLIST = "bl:at:%s";
 
-    // 반환값
-    //   1  → 성공
-    //   0  → oldToken 없음 (이미 만료되었거나 존재하지 않음)
-    //  -1  → status가 ACTIVE가 아님 (재사용 감지 → 탈취 의심)
 
     private static final String ROTATE_SCRIPT = """
-            local old = redis.call('HGETALL', KEYS[1])
-            if #old == 0 then
-                return {0, 0}
+            local rt = redis.call('HGETALL', KEYS[1])
+            if #rt == 0 then
+                return {0, 0, ''}
             end
             
-            local status = nil
+            local familyId = nil
+            local userId   = nil
             local issuedAt = nil
-            local userId = nil
             
-            for i = 1, #old, 2 do
-                if old[i] == 'status' then
-                    status = old[i+1]
-                elseif old[i] == 'issuedAt' then
-                    issuedAt = tonumber(old[i+1])
-                elseif old[i] == 'userId' then
-                    userId = tonumber(old[i+1])
+            for i = 1, #rt, 2 do
+                if     rt[i] == 'familyId' then familyId = rt[i+1]
+                elseif rt[i] == 'userId'   then userId   = tonumber(rt[i+1])
+                elseif rt[i] == 'issuedAt' then issuedAt = tonumber(rt[i+1])
                 end
             end
             
-            local revokedAfterKey = 'user:' .. userId .. ':rtRevokedAfter'
-            local revokedAfter = redis.call('GET', revokedAfterKey)
+            local familyKey = 'family:' .. familyId
+            local status = redis.call('HGET', familyKey, 'status')
             
-            if revokedAfter ~= false then
-                revokedAfter = tonumber(revokedAfter)
-            
-                if issuedAt ~= nil and issuedAt < revokedAfter then
-                    return {-2, userId}
-                end
+            if status == 'REVOKED' then
+                return {-1, userId, familyId}
             end
             
-            if status ~= 'ACTIVE' then
-                return {-1, userId}
-            end
-            
-            
-            redis.call('HSET', KEYS[1], 'status', 'ROTATED')
+            local rtExists = redis.call('EXISTS', KEYS[1])
             
             redis.call('HSET', KEYS[2],
+                'familyId',  familyId,
                 'userId',    userId,
-                'status',    'ACTIVE',
                 'issuedAt',  ARGV[1],
-                'expiresAt', ARGV[2]
-            )
+                'expiresAt', ARGV[2])
             redis.call('EXPIRE', KEYS[2], ARGV[3])
             
-            return {1, userId}
+            redis.call('DEL', KEYS[1])
+            
+            return {1, userId, familyId}
             """;
 
     private static final String SAVE_SCRIPT = """
             redis.call('HSET', KEYS[1],
-            'userId',    ARGV[1],
-            'status',    'ACTIVE',
-            'issuedAt',    ARGV[2],
-            'expiresAt',    ARGV[3])
+                'familyId',  ARGV[2],
+                'userId',    ARGV[1],
+                'issuedAt',  ARGV[3],
+                'expiresAt', ARGV[4])
+            redis.call('EXPIRE', KEYS[1], ARGV[5])
             
-            return redis.call('EXPIRE', KEYS[1], ARGV[4])
+            redis.call('HSET', KEYS[2],
+                'status',    'ACTIVE',
+                'createdAt', ARGV[3])
+            redis.call('EXPIRE', KEYS[2], ARGV[5])
+            
+            redis.call('ZADD', KEYS[3], ARGV[4], ARGV[2])
+            
+            return 1
+            """;
+
+
+    private static final String REVOKE_ALL_SCRIPT = """
+            local families = redis.call('ZRANGE', KEYS[1], 0, -1)
+            for _, fid in ipairs(families) do
+                redis.call('HSET', 'family:' .. fid, 'status', 'REVOKED')
+            end
+            return 0
             """;
 
     private final RedisScript<List> rotateScript = RedisScript.of(ROTATE_SCRIPT, List.class);
     private final RedisScript<Long> saveScript = RedisScript.of(SAVE_SCRIPT, Long.class);
-    private final RedisScript<Long> revokeScript = RedisScript.of(SAVE_SCRIPT, Long.class);
+    private final RedisScript<Long> revokeScript = RedisScript.of(REVOKE_ALL_SCRIPT, Long.class);
 
-    public String save(Long userId, String familyId) {
+    public TokenIssueResult save(Long userId) {
         String rtId = UUID.randomUUID().toString();
+        String familyId = UUID.randomUUID().toString();
 
         long now = epochNow();
         long expiresAt = now + refreshExpirationMs / 1000;
         long ttl = refreshExpirationMs / 1000;
-
-//        stringRedisTemplate.opsForHash().putAll(key, Map.of(
-//                "userId", userId.toString(),
-//                "status", "ACTIVE",
-//                "issuedAt", String.valueOf(now),
-//                "expiresAt", String.valueOf(expiresAt)
-//        ));
-//        stringRedisTemplate.expire(key, ttl, TimeUnit.SECONDS);
 
         Long result = stringRedisTemplate.execute(
                 saveScript,
@@ -129,7 +118,11 @@ public class RefreshTokenRedisRepository {
                 String.valueOf(ttl)
         );
 
-        return rtId;
+        if (result == null || result != 1L) {
+            throw new BusinessException(ErrorCode.TOKEN_PROVIDER_ERROR);
+        }
+
+        return new TokenIssueResult(rtId, familyId);
     }
 
     public RotateResult rotate(String oldRtId) {

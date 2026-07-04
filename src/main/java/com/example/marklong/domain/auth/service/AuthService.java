@@ -1,9 +1,6 @@
 package com.example.marklong.domain.auth.service;
 
-import com.example.marklong.domain.auth.dto.LoginRequest;
-import com.example.marklong.domain.auth.dto.RotateResult;
-import com.example.marklong.domain.auth.dto.SignupRequest;
-import com.example.marklong.domain.auth.dto.TokenResponse;
+import com.example.marklong.domain.auth.dto.*;
 import com.example.marklong.domain.auth.repository.RefreshTokenRedisRepository;
 import com.example.marklong.domain.user.domain.OAuthProvider;
 import com.example.marklong.domain.user.domain.Role;
@@ -48,9 +45,11 @@ public class AuthService {
     public TokenResponse login(LoginRequest request) {
         User user = authenticate(request);
 
-        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
-        String familyId = jwtProvider.getFamilyId(accessToken);
-        String refreshToken = refreshTokenRedisRepository.save(user.getId(), familyId);
+        TokenIssueResult issueResult = refreshTokenRedisRepository.save(user.getId());
+        String familyId = issueResult.familyId();
+        String refreshToken = issueResult.rtId();
+
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole(), familyId);
 
         return TokenResponse.of(accessToken, refreshToken);
     }
@@ -60,11 +59,12 @@ public class AuthService {
 
         Long userId = result.userId();
         String newRefreshToken = result.newToken();
+        String familyId = result.familyId();
 
         User user = userRepository.findUserByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        String newAccessToken = jwtProvider.createAccessToken(userId, user.getRole());
+        String newAccessToken = jwtProvider.createAccessToken(userId, user.getRole(), familyId);
 
         return TokenResponse.of(newAccessToken, newRefreshToken);
     }
