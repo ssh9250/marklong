@@ -11,10 +11,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
@@ -32,57 +29,79 @@ public class RefreshTokenRedisRepository {
 
 
     private static final String ROTATE_SCRIPT = """
-            local rt = redis.call('HGETALL', KEYS[1])
-            if #rt == 0 then
+            local oldRt = redis.call('HGETALL', KEYS[1])
+            if #oldRt == 0 then
                 return {0, 0, ''}
             end
             
             local familyId = nil
-            local userId   = nil
-            local issuedAt = nil
+            local userId = nil
+            local rtStatus = nil
             
-            for i = 1, #rt, 2 do
-                if     rt[i] == 'familyId' then familyId = rt[i+1]
-                elseif rt[i] == 'userId'   then userId   = tonumber(rt[i+1])
-                elseif rt[i] == 'issuedAt' then issuedAt = tonumber(rt[i+1])
+            for i = 1, #oldRt, 2 do
+                if oldRt[i] == 'familyId' then
+                    familyId = oldRt[i + 1]
+                elseif oldRt[i] == 'userId' then
+                    userId = tonumber(oldRt[i + 1])
+                elseif oldRt[i] == 'status' then
+                    rtStatus = oldRt[i + 1]
                 end
             end
             
-            local familyKey = 'family:' .. familyId
-            local status = redis.call('HGET', familyKey, 'status')
+            if familyId == nil or userId == nil or rtStatus == nil then
+                return {-2, userId or 0, familyId or ''}
+            end
             
-            if status == 'REVOKED' then
+            if rtStatus ~= 'ACTIVE' and rtStatus ~= 'ROTATED' then
+                return {-2, userId, familyId}
+            end
+            
+            local familyKey = 'family:' .. familyId
+            local familyStatus = redis.call('HGET', familyKey, 'status')
+            
+            if familyStatus ~= 'ACTIVE' then
+                return {-2, userId, familyId}
+            end
+            
+            if rtStatus == 'ROTATED' then
+                redis.call('HSET', familyKey, 'status', 'REVOKED')
                 return {-1, userId, familyId}
             end
             
-            local rtExists = redis.call('EXISTS', KEYS[1])
+            redis.call('HSET', KEYS[1], 'status', 'ROTATED')
             
             redis.call('HSET', KEYS[2],
                 'familyId',  familyId,
                 'userId',    userId,
+                'status',    'ACTIVE',
                 'issuedAt',  ARGV[1],
                 'expiresAt', ARGV[2])
-            redis.call('EXPIRE', KEYS[2], ARGV[3])
             
-            redis.call('DEL', KEYS[1])
+            redis.call('EXPIRE', familyKey, ARGV[3])
+            
+            local familiesKey = 'user:' .. userId .. ':families'
+            redis.call('ZADD', familiesKey, ARGV[1], familyId)
             
             return {1, userId, familyId}
+            
             """;
 
     private static final String SAVE_SCRIPT = """
             redis.call('HSET', KEYS[1],
                 'familyId',  ARGV[2],
                 'userId',    ARGV[1],
+                'status',   'ACTIVE',
                 'issuedAt',  ARGV[3],
                 'expiresAt', ARGV[4])
             redis.call('EXPIRE', KEYS[1], ARGV[5])
             
             redis.call('HSET', KEYS[2],
+                'userId',    ARGV[1],
                 'status',    'ACTIVE',
                 'createdAt', ARGV[3])
             redis.call('EXPIRE', KEYS[2], ARGV[5])
             
-            redis.call('ZADD', KEYS[3], ARGV[4], ARGV[2])
+            redis.call('ZADD', KEYS[3], ARGV[3], ARGV[2])
             
             return 1
             """;
@@ -127,6 +146,7 @@ public class RefreshTokenRedisRepository {
 
     public RotateResult rotate(String oldRtId) {
         String newRtId = UUID.randomUUID().toString();
+
         long now = epochNow();
         long expiresAt = now + refreshExpirationMs / 1000;
         long ttl = refreshExpirationMs / 1000;
@@ -148,13 +168,25 @@ public class RefreshTokenRedisRepository {
         String familyId = result.get(2) == null ? "" : result.get(2).toString();
 
         return switch ((int) code) {
+            // 정상 요청, 성공
+            case 1 -> new RotateResult(newRtId, userId, familyId);
+
+            // 존재하지 않는 토큰
             case 0 -> throw new BusinessException(ErrorCode.INVALID_TOKEN);
-            case -1 -> throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
-            case -2 -> {
-                revokeAll(userId);
+
+            // rotate된 토큰에 접근, 탈취 감지
+            case -1 -> {
+                // family.status는 이미 ROTATE_SCRIPT 안에서 REVOKED 처리됨
+                // 여기서는 ZSET 정리만 선택적으로 수행
+                removeFamilyFromUserSet(userId, familyId);
+
                 throw new BusinessException(ErrorCode.TOKEN_REUSE_DETECTED);
             }
-            default -> new RotateResult(newRtId, userId, familyId);
+
+            // 이미 탈취 의심으로 폐기된 토큰
+            case -2 -> throw new BusinessException(ErrorCode.INVALID_TOKEN);
+
+            default -> throw new BusinessException(ErrorCode.TOKEN_ROTATION_FAILED);
         };
     }
 
@@ -170,8 +202,12 @@ public class RefreshTokenRedisRepository {
         );
     }
 
+    public void removeFamilyFromUserSet(Long userId, String familyId) {
+        stringRedisTemplate.opsForZSet().remove(familiesZSet(userId), familyId);
+    }
+
     public void blacklistAt(String jti, long remainingMs) {
-        if (remainingMs < 0) {
+        if (remainingMs <= 0) {
             return;
         }
 
@@ -190,6 +226,50 @@ public class RefreshTokenRedisRepository {
     public void cleanExpiredFamilies(Long userId) {
         stringRedisTemplate.opsForZSet()
                 .removeRangeByScore(familiesZSet(userId), 0, epochNow());
+    }
+
+    public void cleanStaleFamilies(Long userId) {
+        String key = familiesZSet(userId);
+
+        Set<String> familyIds = stringRedisTemplate.opsForZSet().range(key, 0, -1);
+        if (familyIds == null || familyIds.isEmpty()) {
+            return;
+        }
+
+        for (String familyId : familyIds) {
+            Boolean exists = stringRedisTemplate.hasKey(familyKey(familyId));
+            if (!Boolean.TRUE.equals(exists)) {
+                stringRedisTemplate.opsForZSet().remove(key, familyId);
+            }
+        }
+    }
+
+    public void enforceMaxFamilies(Long userId, int maxCount) {
+        String key = familiesZSet(userId);
+
+        cleanStaleFamilies(userId);
+
+        Long count = stringRedisTemplate.opsForZSet().zCard(key);
+        if (count == null || count <= maxCount) {
+            return;
+        }
+
+        long overflow = count - maxCount;
+
+        Set<String> oldFamilyIds = stringRedisTemplate.opsForZSet()
+                .range(key, 0, overflow - 1);
+
+        if (oldFamilyIds == null || oldFamilyIds.isEmpty()) {
+            return;
+        }
+
+        for (String familyId : oldFamilyIds) {
+            stringRedisTemplate.opsForHash()
+                    .put(familyKey(familyId), "status", "REVOKED");
+
+            stringRedisTemplate.opsForZSet()
+                    .remove(key, familyId);
+        }
     }
 
     private String rtKey(String token) {
