@@ -76,6 +76,7 @@ public class RefreshTokenRedisRepository {
                 'status',    'ACTIVE',
                 'issuedAt',  ARGV[1],
                 'expiresAt', ARGV[2])
+            redis.call('EXPIRE', KEYS[2], ARGV[3])
             
             redis.call('EXPIRE', familyKey, ARGV[3])
             
@@ -110,8 +111,14 @@ public class RefreshTokenRedisRepository {
     private static final String REVOKE_ALL_SCRIPT = """
             local families = redis.call('ZRANGE', KEYS[1], 0, -1)
             for _, fid in ipairs(families) do
-                redis.call('HSET', 'family:' .. fid, 'status', 'REVOKED')
+                local familyKey = 'family:' .. fid
+            
+                if redis.call('EXISTS', familyKey) == 1 then
+                    redis.call('HSET', familyKey, 'status', 'REVOKED')
+                end
             end
+            redis.call('DEL', KEYS[1])
+            
             return 0
             """;
 
@@ -195,6 +202,7 @@ public class RefreshTokenRedisRepository {
         stringRedisTemplate.opsForZSet().remove(familiesZSet(userId), familyId);
     }
 
+    // 전체 기기 로그아웃
     public void revokeAll(Long userId) {
         stringRedisTemplate.execute(
                 revokeScript,
@@ -219,13 +227,9 @@ public class RefreshTokenRedisRepository {
         );
     }
 
+    // 완성하고 k6로 blacklist on/off에 대해 부하 테스트 해보기. api/me 같은 단순한걸로
     public boolean isATBlacklisted(String jti) {
         return Boolean.TRUE.equals(stringRedisTemplate.hasKey(atBlacklistKey(jti)));
-    }
-
-    public void cleanExpiredFamilies(Long userId) {
-        stringRedisTemplate.opsForZSet()
-                .removeRangeByScore(familiesZSet(userId), 0, epochNow());
     }
 
     public void cleanStaleFamilies(Long userId) {

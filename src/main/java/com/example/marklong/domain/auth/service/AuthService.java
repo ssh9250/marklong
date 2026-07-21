@@ -10,6 +10,7 @@ import com.example.marklong.global.exception.BusinessException;
 import com.example.marklong.global.exception.ErrorCode;
 import com.example.marklong.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,8 +28,11 @@ public class AuthService {
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
     private final StringRedisTemplate stringRedisTemplate;
 
+    @Value("${jwt.max-session-count}")
+    private int maxSession;
+
     public void signup(SignupRequest request) {
-        // 비활성 계정 닉네임은 중복 허용
+        // 탈퇴한 계정의 이메일은 재사용 허용
         if (userRepository.existsByEmailAndDeletedAtIsNull(request.getEmail())) {
             throw new BusinessException(ErrorCode.EMAIL_DUPLICATED);
         }
@@ -46,6 +50,7 @@ public class AuthService {
         User user = authenticate(request);
 
         TokenIssueResult issueResult = refreshTokenRedisRepository.save(user.getId());
+        refreshTokenRedisRepository.enforceMaxFamilies(user.getId(), maxSession);
         String familyId = issueResult.familyId();
         String refreshToken = issueResult.rtId();
 
@@ -69,9 +74,11 @@ public class AuthService {
         return TokenResponse.of(newAccessToken, newRefreshToken);
     }
 
-    public void logout(Long userId, String accessToken) {
-        refreshTokenRedisRepository.revokeAll(userId);
+    public void logout(String accessToken) {
+        Long userId = jwtProvider.getUserId(accessToken);
+        String familyId = jwtProvider.getFamilyId(accessToken);
 
+        refreshTokenRedisRepository.logout(userId, familyId);
 
         // AT blacklist 등록 => phase4
 //        long remainingTime = jwtProvider.getExpiration(accessToken);

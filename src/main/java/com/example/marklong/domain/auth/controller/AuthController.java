@@ -58,7 +58,7 @@ public class AuthController {
             HttpServletRequest httpRequest
     ) {
         String accessToken = jwtTokenProvider.resolveToken(httpRequest);
-        authService.logout(authUser.userId(), accessToken);
+        authService.logout(accessToken);
         return ResponseEntity.ok(ApiResponse.ok(null));
     }
 }
