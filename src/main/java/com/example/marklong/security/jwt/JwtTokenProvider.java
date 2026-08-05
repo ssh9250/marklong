@@ -67,6 +67,7 @@ public class JwtTokenProvider {
         return UUID.randomUUID().toString();
     }
 
+    // 로그아웃 시 access token 하나만으로 전부 처리하기 위해
     public String getFamilyId(String token) {
         try {
             Claims claims = Jwts.parser()

@@ -1,5 +1,6 @@
 package com.example.marklong.domain.auth.oauth;
 
+import com.example.marklong.domain.auth.dto.TokenIssueResult;
 import com.example.marklong.domain.auth.repository.RefreshTokenRedisRepository;
 import com.example.marklong.domain.auth.service.RefreshTokenService;
 import com.example.marklong.domain.user.domain.User;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.Duration;
 
 
 @Component
@@ -32,6 +34,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Value("${jwt.refresh-expiration-ms}")
     private long refreshExpirationMs;
 
+    @Value("${jwt.max-session-count}")
+    private int maxSession;
+
     @Override
     public void onAuthenticationSuccess(
             HttpServletRequest request,
@@ -41,8 +46,20 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         CustomOauth2User oAuth2User = (CustomOauth2User) authentication.getPrincipal();
         User user = oAuth2User.getUser();
 
-        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
-        String refreshToken = jwtProvider.createRefreshToken();
+        // 새로운 jwt 구조 적용부분
+
+        TokenIssueResult issueResult = refreshTokenRedisRepository.save(user.getId());
+        refreshTokenRedisRepository.enforceMaxFamilies(user.getId(), maxSession);
+        String familyId = issueResult.familyId();
+        String refreshToken = issueResult.rtId();
+
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole(), familyId);
+
+
+
+        // 예전 코드 부분
+//        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
+//        String refreshToken = jwtProvider.createRefreshToken();
 
         // 1. Access Token을 쿠키에 저장
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
@@ -50,7 +67,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .sameSite("Lax")
                 .httpOnly(false)
                 .secure(true)
-                .maxAge(accessExpirationMs)    // 30분
+                .maxAge(Duration.ofMillis(accessExpirationMs))    // 30분
                 .build();
 
         // 2. Refresh Token을 HttpOnly 쿠키에 저장
@@ -59,7 +76,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .sameSite("Lax")
                 .httpOnly(true)  // 브라우저 JavaScript에서 접근 불가능하게 설정 (XSS 방어)
                 .secure(true)    // HTTPS 환경에서만 전송
-                .maxAge(refreshExpirationMs)  // 14일
+                .maxAge(Duration.ofMillis(refreshExpirationMs))  // 14일
                 .build();
 
         // Response 헤더에 쿠키 추가
