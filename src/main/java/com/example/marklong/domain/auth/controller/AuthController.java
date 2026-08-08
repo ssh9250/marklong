@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,9 @@ public class AuthController {
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Value("${jwt.refresh-expiration-ms}")
+    private long refreshExpirationMs;
+
     @PostMapping("/signup")
     @Operation(summary = "회원가입")
     public ResponseEntity<ApiResponse<Void>> signup(
@@ -37,18 +41,20 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "이메일·비밀번호 인증 후 Access/Refresh Token을 반환합니다.")
-    public ResponseEntity<ApiResponse<TokenResponse>> login(
+    public ResponseEntity<ApiResponse<String>> login(
             @RequestBody @Valid LoginRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(authService.login(request)));
+        TokenResponse tokenResponse = authService.login(request);
+        return ResponseEntity.ok(ApiResponse.ok(tokenResponse.getAccessToken()));
     }
 
     @PostMapping("/refresh")
     @Operation(summary = "토큰 재발급", description = "Refresh Token으로 새 Access/Refresh Token 쌍을 발급합니다. (RTR 방식)")
-    public ResponseEntity<ApiResponse<TokenResponse>> reissue(
+    public ResponseEntity<ApiResponse<String>> reissue(
             @RequestBody @Valid ReissueRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(authService.reissue(request.getRefreshToken())));
+        TokenResponse tokenResponse = authService.reissue(request.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.ok(response.getAccessToken()));
     }
 
     @PostMapping("/logout")

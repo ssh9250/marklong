@@ -4,6 +4,7 @@ import com.example.marklong.domain.auth.dto.TokenIssueResult;
 import com.example.marklong.domain.auth.repository.RefreshTokenRedisRepository;
 import com.example.marklong.domain.auth.service.RefreshTokenService;
 import com.example.marklong.domain.user.domain.User;
+import com.example.marklong.global.util.CookieUtil;
 import com.example.marklong.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -58,8 +59,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 
         // 예전 코드 부분
-//        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getRole());
-//        String refreshToken = jwtProvider.createRefreshToken();
 
         // 1. Access Token을 쿠키에 저장
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
@@ -67,17 +66,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .sameSite("Lax")
                 .httpOnly(false)
                 .secure(true)
-                .maxAge(Duration.ofMillis(accessExpirationMs))    // 30분
+                .maxAge(Duration.ofMillis(accessExpirationMs))    // 5분
                 .build();
 
         // 2. Refresh Token을 HttpOnly 쿠키에 저장
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
-                .path("/")
-                .sameSite("Lax")
-                .httpOnly(true)  // 브라우저 JavaScript에서 접근 불가능하게 설정 (XSS 방어)
-                .secure(true)    // HTTPS 환경에서만 전송
-                .maxAge(Duration.ofMillis(refreshExpirationMs))  // 14일
-                .build();
+        ResponseCookie refreshTokenCookie = CookieUtil.createRefreshTokenCookie(refreshToken, refreshExpirationMs);
 
         // Response 헤더에 쿠키 추가
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
