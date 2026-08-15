@@ -6,6 +6,7 @@ import com.example.marklong.domain.auth.dto.SignupRequest;
 import com.example.marklong.domain.auth.dto.TokenResponse;
 import com.example.marklong.domain.auth.service.AuthService;
 import com.example.marklong.global.response.ApiResponse;
+import com.example.marklong.global.util.CookieUtil;
 import com.example.marklong.security.auth.AuthUser;
 import com.example.marklong.security.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -45,16 +48,22 @@ public class AuthController {
             @RequestBody @Valid LoginRequest request
     ) {
         TokenResponse tokenResponse = authService.login(request);
-        return ResponseEntity.ok(ApiResponse.ok(tokenResponse.getAccessToken()));
+        ResponseCookie refreshTokenCookie = CookieUtil.createRefreshTokenCookie(tokenResponse.getRefreshToken(), refreshExpirationMs);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(ApiResponse.ok(tokenResponse.getAccessToken()));
     }
 
     @PostMapping("/refresh")
     @Operation(summary = "토큰 재발급", description = "Refresh Token으로 새 Access/Refresh Token 쌍을 발급합니다. (RTR 방식)")
     public ResponseEntity<ApiResponse<String>> reissue(
-            @RequestBody @Valid ReissueRequest request
+            @CookieValue("refreshToken") String refreshToken
     ) {
-        TokenResponse tokenResponse = authService.reissue(request.getRefreshToken());
-        return ResponseEntity.ok(ApiResponse.ok(response.getAccessToken()));
+        TokenResponse tokenResponse = authService.reissue(refreshToken);
+        ResponseCookie refreshTokenCookie = CookieUtil.createRefreshTokenCookie(tokenResponse.getRefreshToken(), refreshExpirationMs);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(ApiResponse.ok(tokenResponse.getAccessToken()));
     }
 
     @PostMapping("/logout")
