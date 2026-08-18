@@ -76,18 +76,11 @@
 
 ---
 
-## [2026-08-15] Refresh Token 전달 방식을 body → httpOnly 쿠키로 전환
+## [2026-08-15] Refresh Token 전달 방식을 Body → HttpOnly Cookie로 전환
 
-- 이유: 기존에는 일반 로그인(`POST /api/auth/login`)이 AT/RT를 모두 JSON body로 반환했다. 그런데 OAuth2 로그인은 `OAuth2AuthenticationSuccessHandler`가 브라우저를 프론트엔드로 리다이렉트하는 구조라 JSON body를 반환할 수 없다 — 리다이렉트 응답에는 body가 실리지 않으므로, 소셜 로그인 성공 시 토큰을 프론트로 넘길 방법이 필요했다. 이 때문에 OAuth 경로만 먼저 RT를 httpOnly 쿠키로 내려주게 되어 있었고, 일반 로그인은 body 방식을 유지해 두 로그인 경로의 토큰 전달 방식이 서로 달랐다. `POST /api/auth/refresh`는 body의 RT만 읽도록 되어 있어, OAuth로 로그인한 사용자는 쿠키에 RT가 있어도 refresh를 호출할 방법이 없는 상태로 상충했다.
-- 대안:
-  - **RT도 프론트가 body로 받아 직접 관리** → OAuth 리다이렉트에서는 여전히 body를 못 주므로 리다이렉트 URL 쿼리 파라미터로 토큰을 실어야 함. 브라우저 히스토리·리퍼러·서버 로그에 토큰이 노출되는 위험이 있어 제외 (기존 코드에도 이 방식이 주석 처리된 채 남아 있었음)
-  - **AT/RT 모두 쿠키로 통일** → 매 API 요청마다 자동 전송되는 쿠키에 AT까지 실으면 CSRF 방어 범위가 전체 인증 엔드포인트로 확대되고, 현재 `SecurityConfig`가 CSRF를 전역 disable(stateless JWT + Authorization 헤더 전제) 상태라 설계 변경 폭이 커짐. 지금 단계에서는 과설계로 판단해 보류
-  - **RT를 로그인 경로별로 다르게 유지(현행)** → refresh 엔드포인트가 두 가지 소스(body/쿠키)를 모두 지원해야 해서 분기 로직이 지저분해지고, 어느 한쪽을 빠뜨리면 이번처럼 로그인 경로 간 불일치가 재발함
-- 결정: RT는 로그인 경로(일반 로그인 / OAuth2)와 무관하게 항상 httpOnly 쿠키(`refreshToken`, `secure=true`, `sameSite=Lax`, `path=/`)로만 전달한다. AT는 기존처럼 로그인 응답 body(`ApiResponse<String>`)로만 전달하고, OAuth 리다이렉트 직후에는 프론트가 콜백 페이지에서 한 번 읽어가는 짧은 TTL의 non-httpOnly 쿠키로 보완한다.
-  - `CookieUtil.createRefreshTokenCookie(String refreshToken, long ttl)`을 신설해 쿠키 빌드 로직을 `AuthController`(로그인/재발급)와 `OAuth2AuthenticationSuccessHandler`가 공유하도록 정리
-  - `POST /api/auth/refresh`는 body의 `ReissueRequest` 대신 `@CookieValue("refreshToken")`으로 RT를 받도록 변경, 재발급 후 새 RT도 쿠키로 재설정(RTR 회전과 쿠키 갱신을 함께 처리)
-  - 구현 중 실수로 쿠키 이름이 `refresh_token`(스네이크케이스, `CookieUtil`)과 `refreshToken`(카멜케이스, `@CookieValue`)으로 어긋나 refresh가 항상 400을 반환하는 버그와, `CookieUtil`을 static 유틸로 유지한 채 static 필드에 `@Value`를 붙여 TTL이 항상 0으로 주입되지 않는 버그가 있었음 — 둘 다 발견 후 쿠키 이름 통일, TTL을 파라미터로 명시적 전달하는 방식으로 수정
-  - 남은 과제: 로그아웃 시 서버 쪽 `revokeAll()`은 수행하지만 브라우저의 `refreshToken` 쿠키 자체를 만료시키는 처리는 아직 없음 (추후 추가 예정)
+* 이유: 일반 로그인은 AT/RT를 JSON body로 반환했지만, OAuth2 로그인은 리다이렉트 방식이라 body를 통해 토큰을 전달할 수 없음. OAuth 경로만 RT를 Cookie로 전달하면서 로그인 방식에 따라 전달 방식이 달라졌고, `refresh` API도 body의 RT만 지원해 경로 간 불일치 발생
+* 대안: RT를 URL 쿼리로 전달 → 브라우저 히스토리·Referer·로그 등에 노출 위험. AT/RT 모두 Cookie → CSRF 방어 범위 확대 및 기존 stateless JWT 구조 변경 필요. 로그인 경로별 유지 → `refresh`에서 body/cookie 분기 필요 및 동일 문제 재발 가능
+* 결정: RT는 로그인 방식과 관계없이 `HttpOnly Cookie`(`refreshToken`, `Secure`, `SameSite=Lax`, `Path=/`)로 통일. AT는 기존처럼 응답 body로 전달. `refresh`는 Cookie에서 RT를 읽고 RTR 후 새 RT를 Cookie로 갱신. 쿠키 생성 로직은 `CookieUtil`로 공통화
 
 ---
 
