@@ -37,22 +37,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // phase4
-//        if (stringRedisTemplate.hasKey(blacklistKey)) {
-//             reject(response);
-//             return;
-//         }
+//         phase4
+        if (stringRedisTemplate.hasKey(blacklistKey)) {
+             reject(response);
+             return;
+         }
 
         if (!jwtTokenProvider.validateToken(token)) {
             reject(response);
             return;
         }
 
-        Long userId = jwtTokenProvider.getUserId(token);
-        long issuedAt = jwtTokenProvider.getIssuedAt(token) / 1000;
 
-        Optional<Long> revokedAfter = refreshTokenRedisRepository.getRevokedAfter(userId);
-        if (revokedAfter.isPresent() && revokedAfter.get() > issuedAt) {
+        if (jwtTokenProvider.getExpiration(token) <= 0) {
             reject(response);
             return;
         }

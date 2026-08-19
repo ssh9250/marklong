@@ -81,13 +81,13 @@ public class AuthService {
         refreshTokenRedisRepository.logout(userId, familyId);
 
         // AT blacklist 등록 => phase4
-//        long remainingTime = jwtProvider.getExpiration(accessToken);
-//
-//        stringRedisTemplate.opsForValue().set(
-//                "blacklist:" + accessToken,
-//                "logged_out",
-//                remainingTime, TimeUnit.MILLISECONDS
-//        );
+        long remainingTime = jwtProvider.getExpiration(accessToken);
+
+        stringRedisTemplate.opsForValue().set(
+                "blacklist:" + accessToken,
+                "logged_out",
+                remainingTime, TimeUnit.MILLISECONDS
+        );
     }
 
     private User authenticate(LoginRequest request) {

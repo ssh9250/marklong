@@ -214,23 +214,6 @@ public class RefreshTokenRedisRepository {
         stringRedisTemplate.opsForZSet().remove(familiesZSet(userId), familyId);
     }
 
-    public void blacklistAt(String jti, long remainingMs) {
-        if (remainingMs <= 0) {
-            return;
-        }
-
-        stringRedisTemplate.opsForValue().set(
-                atBlacklistKey(jti),
-                "1",
-                remainingMs,
-                TimeUnit.MILLISECONDS
-        );
-    }
-
-    // 완성하고 k6로 blacklist on/off에 대해 부하 테스트 해보기. api/me 같은 단순한걸로
-    public boolean isATBlacklisted(String jti) {
-        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(atBlacklistKey(jti)));
-    }
 
     public void cleanStaleFamilies(Long userId) {
         String key = familiesZSet(userId);
@@ -286,10 +269,6 @@ public class RefreshTokenRedisRepository {
 
     private String familiesZSet(Long userId) {
         return String.format(FAMILIES_ZSET, userId);
-    }
-
-    private String atBlacklistKey(String jti) {
-        return String.format(AT_BLACKLIST, jti);
     }
 
     private long toLong(Object o) {
