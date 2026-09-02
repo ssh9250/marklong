@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -145,3 +145,4 @@ kis:
 
 oauth2:
   redirect-uri: http://localhost:3000/oauth/callback
+debug: true

@@ -37,11 +37,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-//         phase4
-        if (stringRedisTemplate.hasKey(blacklistKey)) {
-             reject(response);
-             return;
-         }
+//        if (stringRedisTemplate.hasKey(blacklistKey)) {
+//             reject(response);
+//             return;
+//        }
 
         if (!jwtTokenProvider.validateToken(token)) {
             reject(response);

@@ -16,14 +16,14 @@ TimescaleDB(PostgreSQL), Redis, Kafka 등 외부 인프라가 동시에 늘어�
 ### 해결 방법
 인프라와 애플리케이션 컴포즈 파일을 분리했다.
 
-- `docker-compose.infra.yml` — TimescaleDB(`timescale/timescaledb:latest-pg16`), Redis(`redis:7.2-alpine`). healthcheck·named volume·`restart: unless-stopped` 적용
-- `docker-compose.yml` — 애플리케이션·Nginx
+- `../compose.yml` — TimescaleDB(`timescale/timescaledb:latest-pg16`), Redis(`redis:7.2-alpine`). healthcheck·named volume·`restart: unless-stopped` 적용
+- `../compose.app.yml` — 애플리케이션·Nginx
 - `init-scripts/01-init-timescaledb.sql` 로 TimescaleDB extension 초기화
-- `.env` / `.env.example` 로 DB 계정·JWT secret 등 환경변수 분리, `.gitignore` 에 `.env` 등록
+- `../src/main/resources/.env` / `.env.example` 로 DB 계정·JWT secret 등 환경변수 분리, `.gitignore` 에 `../src/main/resources/.env` 등록
 - 주 DB로 PostgreSQL 대신 TimescaleDB를 선택 — 주가(StockPrice)가 시계열 데이터이고 향후 hypertable 활용을 염두에 둠
 
 ### 관련 파일
-- `docker-compose.infra.yml`, `docker-compose.yml`, `Dockerfile`
+- `../compose.yml`, `../compose.app.yml`, `Dockerfile`
 - `init-scripts/01-init-timescaledb.sql`
 - `.env.example`, `application.yaml`
 

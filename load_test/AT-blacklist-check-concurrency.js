@@ -4,7 +4,7 @@ import { check } from 'k6';
 const BASE_URL = 'http://localhost:8080/api';
 
 const TOKEN =
-    '여기에_엑세스토큰_입력';
+    'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwicm9sZSI6IlVTRVIiLCJmYW1pbHlJZCI6Ijc5OWUyNzM0LTYzOWItNGU2Yi05MjA5LWMzMGUzYTI5ODY3YiIsImlhdCI6MTc4ODM0MjEyNCwiZXhwIjoxNzg4MzQyNDI0fQ.VRDpRH5SjqnsKKEohNqhAhVTR_V-IYyf0-z72DGlyiHipfbhOcGZiB2u-bzhjgQHEnnc1cEoXoPSoVu9G7fwhA';
 
 export const options = {
     vus: 50,

@@ -5,7 +5,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 .env.local
-.env
+src/main/resources/.env
 
 
 ### Test Coverage ###

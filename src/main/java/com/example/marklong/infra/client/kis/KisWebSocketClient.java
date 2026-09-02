@@ -28,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class KisWebSocketClient {
     private final StockPriceRedisRepository stockPriceRedisRepository;
-    private final KafkaTemplate<String, StockAlertEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     private WebSocketSession currentSession;

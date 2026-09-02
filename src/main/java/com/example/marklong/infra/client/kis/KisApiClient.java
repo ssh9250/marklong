@@ -36,7 +36,7 @@ public class KisApiClient {
     @Value("${kis.app-secret}")
     private String appSecret;
 
-    public KisApiClient(@Qualifier("kisWebclient") WebClient kisWebClient,
+    public KisApiClient(@Qualifier("kisWebClient") WebClient kisWebClient,
                         KisTokenStorage kisTokenStorage, StringRedisTemplate stringRedisTemplate) {
         this.kisWebClient = kisWebClient;
         this.kisTokenStorage = kisTokenStorage;

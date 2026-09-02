@@ -41,9 +41,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.boot:spring-boot-starter-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
     // Database

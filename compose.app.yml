@@ -2,7 +2,7 @@ services:
   app:
     build: .
     container_name: marklong-app
-    env_file: .env
+    env_file: src/main/resources/.env
     environment:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
